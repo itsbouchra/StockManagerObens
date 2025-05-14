@@ -1,4 +1,4 @@
-package com.stock.stockmanager;
+package com.stock.stockmanager.response;
 
 public class MessageResponse {
     private String message;
