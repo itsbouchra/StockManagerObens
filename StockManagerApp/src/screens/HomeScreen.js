@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Button } from 'react-native';
 
-const HomeScreen = () => {
+const HomeScreen = ({ navigation }) => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -21,6 +21,14 @@ const HomeScreen = () => {
     <View style={{ padding: 20 }}>
       <Text>Message from Spring Boot:</Text>
       <Text>{message}</Text>
+
+      <View style={{ marginTop: 20 }}>
+        <Button
+          title="Go to Dashboard"
+          onPress={() => navigation.navigate('Dashboard')}
+          color="#007AFF"
+        />
+      </View>
     </View>
   );
 };
