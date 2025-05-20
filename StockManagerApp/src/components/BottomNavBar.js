@@ -1,33 +1,45 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import { View, TouchableOpacity } from 'react-native';
+import {
+  Home,
+  DollarSign,
+  ShoppingCart,
+  Boxes,
+  User,
+} from 'lucide-react-native'; // Lucide icons
 
 const BottomNavBar = ({ navigation, currentRoute }) => {
-  const tabs = [
-    { name: 'Home', icon: <Ionicons name="home" size={24} color={currentRoute === 'Home' ? '#10b981' : 'gray'} /> },
-    { name: 'Buy', icon: <FontAwesome5 name="shopping-cart" size={20} color={currentRoute === 'Buy' ? '#10b981' : 'gray'} /> },
-    { name: 'Sell', icon: <MaterialCommunityIcons name="cash-plus" size={24} color={currentRoute === 'Sell' ? '#10b981' : 'gray'} /> },
-    { name: 'Product', icon: <Ionicons name="cube-outline" size={24} color={currentRoute === 'Product' ? '#10b981' : 'gray'} /> },
-    { name: 'Stock', icon: <MaterialCommunityIcons name="warehouse" size={24} color={currentRoute === 'Stock' ? '#10b981' : 'gray'} /> },
-    { name: 'Profile', icon: <Ionicons name="person" size={24} color={currentRoute === 'Profile' ? '#10b981' : 'gray'} /> },
-  ];
+  const iconColor = (routeName) =>
+    routeName === currentRoute ? '#E1B12C' : '#FFFFFF';
 
   return (
-    <View className="flex-row justify-around items-center h-16 bg-white border-t">
-      {tabs.map((tab, index) => (
-        <TouchableOpacity
-          key={index}
-          onPress={() => navigation && navigation.navigate(tab.name)}
-          className="items-center"
-        >
-          {tab.icon}
-          <Text className={`text-xs ${currentRoute === tab.name ? 'text-green-600' : 'text-gray-500'}`}>
-            {tab.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={{
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      backgroundColor: '#708238',
+      paddingVertical: 10,
+      height: 60,
+      alignItems: 'center',
+    }}>
+      <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
+        <Home size={28} color={iconColor('Dashboard')} />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Sell')}>
+        <DollarSign size={28} color={iconColor('Sell')} />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Buy')}>
+        <ShoppingCart size={28} color={iconColor('Buy')} />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('ProductStock')}>
+        <Boxes size={28} color={iconColor('ProductStock')} />
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+        <User size={28} color={iconColor('Profile')} />
+      </TouchableOpacity>
     </View>
   );
 };

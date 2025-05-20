@@ -1,56 +1,48 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Ionicons from 'react-native-vector-icons/Ionicons';
+import { View, Text, TouchableOpacity } from 'react-native';
+import {
+  ArrowLeft,
+  Home,
+  Bell,
+  Settings,
+} from 'lucide-react-native';
 
-const TopBar = () => {
+const TopBar = ({ title = 'Overview', onGoBack }) => {
   return (
-    <View style={styles.container}>
-      <View style={styles.leftSection}>
-        <Ionicons name="home" size={24} color="black" />
-        <Text style={styles.title}>Overview</Text>
+    <View
+      style={{
+        backgroundColor: '#708238',
+        paddingTop: 40, // adjust for status bar
+        paddingBottom: 12,
+        paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        elevation: 4,
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        {onGoBack && (
+          <TouchableOpacity onPress={onGoBack} style={{ marginRight: 16 }}>
+            <ArrowLeft size={24} color="#E1B12C" />
+          </TouchableOpacity>
+        )}
+        <Home size={28} color="#E1B12C" />
+        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginLeft: 12 }}>
+          {title}
+        </Text>
       </View>
-      <View style={styles.rightSection}>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="notifications-outline" size={24} color="black" />
+
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <TouchableOpacity style={{ marginRight: 16 }}>
+          <Bell size={24} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton}>
-          <Ionicons name="settings-outline" size={24} color="black" />
+        <TouchableOpacity>
+          <Settings size={24} color="white" />
         </TouchableOpacity>
       </View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16, // px-4
-    paddingVertical: 12,   // py-3
-    backgroundColor: 'white',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  leftSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 20, // text-xl
-    fontWeight: '700',
-    marginLeft: 8,
-  },
-  rightSection: {
-    flexDirection: 'row',
-    gap: 16, // React Native doesn't support 'gap' natively, so we'll use margin on buttons instead
-  },
-  iconButton: {
-    marginLeft: 16,
-  },
-});
 
 export default TopBar;

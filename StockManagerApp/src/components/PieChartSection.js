@@ -1,18 +1,18 @@
 import React from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, Dimensions } from 'react-native';
 import { PieChart } from 'react-native-chart-kit';
 
 const PieChartSection = ({ distributionData }) => {
   const data = distributionData?.map((item, index) => ({
     name: item.category || `Item ${index + 1}`,
     population: item.value,
-    color: item.color || ['#83966b', '#cfdccf', '#deb945'][index % 3],
+    color: item.color,
     legendFontColor: '#333',
     legendFontSize: 12,
   })) || [];
 
   return (
-    <View style={styles.container}>
+    <View className="bg-green-100 rounded-xl mx-4 p-2 my-4">
       {data.length > 0 && (
         <PieChart
           data={data}
@@ -33,15 +33,5 @@ const PieChartSection = ({ distributionData }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#bbf7d0', // Tailwind green-100
-    borderRadius: 12,
-    marginHorizontal: 16, // mx-4
-    padding: 8, // p-2
-    marginVertical: 16, // my-4
-  },
-});
 
 export default PieChartSection;
