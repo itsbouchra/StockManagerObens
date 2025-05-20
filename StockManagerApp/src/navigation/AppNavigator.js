@@ -3,11 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
+import LoginScreen from '../screens/LoginScreen'; 
 import HomeScreen from '../screens/HomeScreen';
 import Dashboard from '../screens/Dashboard';
 import BottomNavBar from '../components/BottomNavBar';
 import CategorieScreen from '../screens/CategorieScreen'; 
-
 
 const Stack = createNativeStackNavigator();
 
@@ -21,18 +21,40 @@ const DashboardWithNavbar = ({ navigation }) => (
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Welcome"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Welcome" component={WelcomeScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Dashboard" component={DashboardWithNavbar} />
-        <Stack.Screen name="Categorie" component={CategorieScreen} />
+      <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Screen
+          name="Welcome"
+          component={WelcomeScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            title: '',
+            headerTransparent: true,
+            headerBackTitleVisible: false,
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ title: 'Dashboard' }}
+        />
+        <Stack.Screen
+          name="Dashboard"
+          component={DashboardWithNavbar}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Categorie"
+          component={CategorieScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 };
 
 export default AppNavigator;
-
