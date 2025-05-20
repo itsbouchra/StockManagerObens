@@ -21,7 +21,7 @@ public class Vente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_vente")
-    private Long id;
+    private Integer id;
 
     @Column(name = "date_vente")
     private LocalDate dateVente;
@@ -48,11 +48,11 @@ public class Vente {
     //     this.client = client;
     // }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

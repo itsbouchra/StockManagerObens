@@ -7,7 +7,7 @@ import TopBar from '../components/TopBar';
 const Dashboard = ({ navigation }) => {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
-
+ 
   const API_BASE_URL = 'http://10.0.2.2:8080';
 
   useEffect(() => {
@@ -124,7 +124,7 @@ const Dashboard = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar />
+      <TopBar title="Overview" active="home" />
       <View
         style={{
           flexDirection: 'row',
@@ -140,7 +140,7 @@ const Dashboard = ({ navigation }) => {
             value={value}
             bgColor={bgColor}
             iconName={iconName}
-            style={{ width: '48%', marginBottom: 13, height: 95  }}
+            style={{ width: '48%', marginBottom: 13, height: 95 }}
           />
         ))}
       </View>

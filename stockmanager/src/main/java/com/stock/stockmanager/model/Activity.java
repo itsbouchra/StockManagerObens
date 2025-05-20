@@ -19,7 +19,7 @@ public class Activity {      // you can rename this to MvtStock if you want
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_mvt")  // map field to PK column
-    private Long id;
+    private Integer id;
 
     @Column(name = "dateMvt") // map field to timestamp column
     private LocalDateTime timestamp;
@@ -51,11 +51,11 @@ public class Activity {      // you can rename this to MvtStock if you want
     
     // Getters and setters
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

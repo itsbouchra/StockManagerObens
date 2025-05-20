@@ -1,6 +1,8 @@
 
 package com.stock.stockmanager.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,30 +14,29 @@ import jakarta.persistence.Table;
 @Table(name = "categorie")
 public class Categorie {
 
-      @Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_categorie")
-    private Long id;
+    private Integer id_categorie;
 
     private String nom;
     private String description;
 
-   
-
-    public Long getId() {
-        return id;
+    @JsonProperty("id_categorie")
+    public Integer getIdCategorie() {
+        return id_categorie;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
+    public void setIdCategorie(Integer id_categorie) {
+        this.id_categorie = id_categorie;
     }
 
     public String getNom() {
         return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
     public String getDescription() {
@@ -45,12 +46,4 @@ public class Categorie {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }
-
-
-
-
-
-
-

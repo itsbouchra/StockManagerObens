@@ -41,7 +41,7 @@ const BottomNavBar = ({ navigation, currentRoute }) => {
         <Package size={28} color={iconColor('Product')} />
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate('ProductStock')}>
+      <TouchableOpacity onPress={() => navigation.navigate('Categorie')}>
         <Boxes size={28} color={iconColor('ProductStock')} />
       </TouchableOpacity>
 

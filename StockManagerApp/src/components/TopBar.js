@@ -3,11 +3,25 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import {
   ArrowLeft,
   Home,
+  Boxes,
   Bell,
   Settings,
 } from 'lucide-react-native';
 
-const TopBar = ({ title = 'Overview', onGoBack }) => {
+const TopBar = ({ title, active = 'home', onGoBack }) => {
+  const iconColor = (iconName) => (active === iconName ? '#E1B12C' : 'white');
+
+  const renderIcon = () => {
+    switch (active) {
+      case 'home':
+        return <Home size={28} color={iconColor('home')} />;
+      case 'stock':
+        return <Boxes size={28} color={iconColor('stock')} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <View
       style={{
@@ -22,14 +36,13 @@ const TopBar = ({ title = 'Overview', onGoBack }) => {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity
-          onPress={onGoBack}
-          style={{ marginRight: 16 }}
-        >
-          <ArrowLeft size={24} color="white" />
-        </TouchableOpacity>
+        {onGoBack && (
+          <TouchableOpacity onPress={onGoBack} style={{ marginRight: 16 }}>
+            <ArrowLeft size={24} color="white" />
+          </TouchableOpacity>
+        )}
 
-        <Home size={28} color="#E1B12C" />
+        {renderIcon()}
         <Text
           style={{
             color: 'white',

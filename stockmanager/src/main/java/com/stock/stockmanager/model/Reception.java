@@ -3,7 +3,6 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +21,7 @@ public class Reception {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_reception")
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_achat")
@@ -50,14 +49,13 @@ public class Reception {
 
     // Getters and setters...
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
-
     public Achat getAchat() {
         return achat;
     }

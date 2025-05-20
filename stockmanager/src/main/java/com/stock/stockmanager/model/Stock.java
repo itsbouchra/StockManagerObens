@@ -21,7 +21,7 @@ public class Stock {
      @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_stock")
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_produit")
@@ -60,11 +60,11 @@ public class Stock {
         this.produit = produit;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

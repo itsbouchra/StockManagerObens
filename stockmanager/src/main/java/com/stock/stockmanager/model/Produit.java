@@ -20,7 +20,7 @@ public class Produit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_produit")
-    private Long id;
+    private Integer id;
 
     private String nom;
     private String description;
@@ -52,14 +52,17 @@ public class Produit {
     public Produit(String laptop, int i, double d) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+    public Produit() {
+    // obligatoire pour Hibernate
+     }
+
 
     // Getters and setters...
-
-    public Long getId() {
+ public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
