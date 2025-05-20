@@ -12,7 +12,7 @@ const TopBar = ({ title = 'Overview', onGoBack }) => {
     <View
       style={{
         backgroundColor: '#708238',
-        paddingTop: 40, // adjust for status bar
+        paddingTop: 40,
         paddingBottom: 12,
         paddingHorizontal: 16,
         flexDirection: 'row',
@@ -22,13 +22,22 @@ const TopBar = ({ title = 'Overview', onGoBack }) => {
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {onGoBack && (
-          <TouchableOpacity onPress={onGoBack} style={{ marginRight: 16 }}>
-            <ArrowLeft size={24} color="#E1B12C" />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          onPress={onGoBack}
+          style={{ marginRight: 16 }}
+        >
+          <ArrowLeft size={24} color="white" />
+        </TouchableOpacity>
+
         <Home size={28} color="#E1B12C" />
-        <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginLeft: 12 }}>
+        <Text
+          style={{
+            color: 'white',
+            fontSize: 26,
+            fontWeight: 'bold',
+            marginLeft: 12,
+          }}
+        >
           {title}
         </Text>
       </View>

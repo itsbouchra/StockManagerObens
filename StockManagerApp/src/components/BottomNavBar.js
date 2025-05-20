@@ -4,6 +4,7 @@ import {
   Home,
   DollarSign,
   ShoppingCart,
+  Package, 
   Boxes,
   User,
 } from 'lucide-react-native'; // Lucide icons
@@ -13,14 +14,16 @@ const BottomNavBar = ({ navigation, currentRoute }) => {
     routeName === currentRoute ? '#E1B12C' : '#FFFFFF';
 
   return (
-    <View style={{
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      backgroundColor: '#708238',
-      paddingVertical: 10,
-      height: 60,
-      alignItems: 'center',
-    }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        backgroundColor: '#708238',
+        paddingVertical: 10,
+        height: 60,
+        alignItems: 'center',
+      }}
+    >
       <TouchableOpacity onPress={() => navigation.navigate('Dashboard')}>
         <Home size={28} color={iconColor('Dashboard')} />
       </TouchableOpacity>
@@ -31,6 +34,11 @@ const BottomNavBar = ({ navigation, currentRoute }) => {
 
       <TouchableOpacity onPress={() => navigation.navigate('Buy')}>
         <ShoppingCart size={28} color={iconColor('Buy')} />
+      </TouchableOpacity>
+
+  
+      <TouchableOpacity onPress={() => navigation.navigate('Product')}>
+        <Package size={28} color={iconColor('Product')} />
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate('ProductStock')}>
