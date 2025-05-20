@@ -58,13 +58,13 @@ export default function LoginScreen() {
       <View style={styles.form}>
         <View style={styles.inputContainer}>
           <User size={20} color="green" />
-          <TextInput
+          {/* <TextInput
             placeholder="Full Name"
             placeholderTextColor="gray"
             value={username}
             onChangeText={setUsername}
             style={styles.input}
-          />
+          /> */}
         </View>
 
         <View style={styles.inputContainer}>
