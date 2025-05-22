@@ -24,7 +24,7 @@ export default function LoginScreen() {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
-    try {
+     try {
       const response = await fetch('http://10.0.2.2:8080/api/users');
       const users = await response.json();
 
@@ -33,8 +33,8 @@ export default function LoginScreen() {
       );
 
       if (foundUser) {
-        Alert.alert('Success', `Welcome ${foundUser.username}!`);
-        navigation.navigate('Home');
+          Alert.alert('Success', `Welcome ${foundUser.username}!`);
+        navigation.navigate('Dashboard');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }
@@ -79,9 +79,9 @@ export default function LoginScreen() {
           />
           <TouchableOpacity onPress={() => setSecure(!secure)}>
   {secure ? (
-    <EyeOff size={20} color="#3d3d3d" /> // 👁️‍🗨️ Masqué
+    <EyeOff size={20} color="#3d3d3d" /> // 👁‍🗨 Masqué
   ) : (
-    <Eye size={20} color="#3d3d3d" />    // 👁️ Visible
+    <Eye size={20} color="#3d3d3d" />    // 👁 Visible
   )}
 </TouchableOpacity>
 
@@ -196,5 +196,5 @@ const styles = StyleSheet.create({
     color: '#6b8e23',
     fontWeight: '600',
     textDecorationLine: 'underline',
-  },
+  },
 });

@@ -4,7 +4,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen'; 
-import HomeScreen from '../screens/HomeScreen';
 import Dashboard from '../screens/Dashboard';
 import BottomNavBar from '../components/BottomNavBar';
 import CategorieScreen from '../screens/CategorieScreen'; 
@@ -37,11 +36,7 @@ const AppNavigator = () => {
             headerTintColor: '#fff',
           }}
         />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: 'Dashboard' }}
-        />
+       
         <Stack.Screen
           name="Dashboard"
           component={DashboardWithNavbar}
