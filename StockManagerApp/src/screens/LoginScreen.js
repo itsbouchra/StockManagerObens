@@ -34,7 +34,7 @@ export default function LoginScreen() {
 
       if (foundUser) {
         Alert.alert('Success', `Welcome ${foundUser.username}!`);
-        navigation.navigate('Home');
+        navigation.navigate('Dashboard');
       } else {
         Alert.alert('Error', 'Invalid credentials');
       }
