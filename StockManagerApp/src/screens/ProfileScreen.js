@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import {
-  User,
+  Userr,
   Settings,
   Lock,
   LogOut,
