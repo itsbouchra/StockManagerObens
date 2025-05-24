@@ -1,53 +1,54 @@
+// src/navigation/AppNavigator.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+
+
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen'; 
-import Dashboard from '../screens/Dashboard';
-import BottomNavBar from '../components/BottomNavBar';
-import CategorieScreen from '../screens/CategorieScreen'; 
+import ProfileScreen from '../screens/ProfileScreen';
+import DashboardScreen from '../screens/DashboardScreen';
+
 
 const Stack = createNativeStackNavigator();
 
-const DashboardWithNavbar = ({ navigation }) => (
-  <>
-    <Dashboard navigation={navigation} />
-    <BottomNavBar navigation={navigation} currentRoute="Dashboard" />
-  </>
-);
-
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
+  <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
-        <Stack.Screen
-          name="Welcome"
-          component={WelcomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
+  <Stack.Screen
+    name="Welcome"
+    component={WelcomeScreen}
+    options={{ headerShown: false }}
+  />
+  <Stack.Screen
+    name="Login"
+    component={LoginScreen}
           options={{
-            title: '',
-            headerTransparent: true,
-            headerBackTitleVisible: false,
-            headerTintColor: '#fff',
+            title: '', // ❌ supprime le titre "Login"
+            headerTransparent: true, // ✅ laisse voir l'image en fond
+            headerBackTitleVisible: false, // ❌ cache "Back" (iOS)
+            headerTintColor: '#fff', // ✅ flèche blanche
           }}
-        />
-       
-        <Stack.Screen
+  />
+    <Stack.Screen
           name="Dashboard"
-          component={DashboardWithNavbar}
-          options={{ headerShown: false }}
+          component={DashboardScreen} // <-- Ici on utilise DashboardScreen.js
+          options={{ title: 'Dashboard' }}
         />
-        <Stack.Screen
-          name="Categorie"
-          component={CategorieScreen}
-          options={{ headerShown: false }}
-        />
-      </Stack.Navigator>
+  <Stack.Screen   name="Profile"
+          component={ProfileScreen}
+          options={{ title: '',
+           
+             headerShown: false ,
+            
+           
+           
+           
+           }} />
+
+</Stack.Navigator>
     </NavigationContainer>
   );
 };
