@@ -46,4 +46,18 @@ public class Categorie {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    public Categorie() {}
+
+public Categorie(String nom, String description) {
+    this.nom = nom;
+    this.description = description;
+}
+
+
+@Override
+public String toString() {
+    return "Categorie{id=" + id_categorie + ", nom='" + nom + "', description='" + description + "'}";
+}
+
 }

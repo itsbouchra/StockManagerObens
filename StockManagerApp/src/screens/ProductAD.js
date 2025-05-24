@@ -15,7 +15,7 @@ const boxMargin = 16;
 const boxesPerRow = 2;
 const boxWidth = (windowWidth - boxMargin * (boxesPerRow + 1)) / boxesPerRow;
 
-const CategorieScreen = ({ navigation }) => {
+const ProductAD = ({ navigation }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = 'http://10.0.2.2:8080';
@@ -38,7 +38,14 @@ const CategorieScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#f3f4f6',
+        }}
+      >
         <ActivityIndicator size="large" color="#00cc99" />
       </View>
     );
@@ -94,7 +101,14 @@ const CategorieScreen = ({ navigation }) => {
               elevation: 3,
             }}
           >
-            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#374151', textAlign: 'center' }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+                color: '#374151',
+                textAlign: 'center',
+              }}
+            >
               {item.nom}
             </Text>
           </TouchableOpacity>
@@ -102,9 +116,10 @@ const CategorieScreen = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 80, paddingTop: 10 }}
       />
 
-      <BottomNavBar navigation={navigation} currentRoute="ProductStock" />
+      {/* Product icon active here */}
+      <BottomNavBar navigation={navigation} currentRoute="Product" />
     </View>
   );
 };
 
-export default CategorieScreen;
+export default ProductAD;
