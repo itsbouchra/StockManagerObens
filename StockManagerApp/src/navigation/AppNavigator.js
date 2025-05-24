@@ -3,12 +3,9 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-
-
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen'; 
-import ProfileScreen from '../screens/ProfileScreen';
-import DashboardScreen from '../screens/DashboardScreen';
+import HomeScreen from '../screens/HomeScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -32,22 +29,11 @@ const AppNavigator = () => {
             headerTintColor: '#fff', // ✅ flèche blanche
           }}
   />
-    <Stack.Screen
-          name="Dashboard"
-          component={DashboardScreen} // <-- Ici on utilise DashboardScreen.js
-          options={{ title: 'Dashboard' }}
-        />
-  <Stack.Screen   name="Profile"
-          component={ProfileScreen}
-          options={{ title: '',
-           
-             headerShown: false ,
-            
-           
-           
-           
-           }} />
-
+  <Stack.Screen
+    name="Home"
+    component={HomeScreen}
+    options={{ title: 'Dashboard' }}
+  />
 </Stack.Navigator>
     </NavigationContainer>
   );
