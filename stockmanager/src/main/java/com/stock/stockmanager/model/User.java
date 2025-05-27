@@ -1,23 +1,34 @@
 package com.stock.stockmanager.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "user")
+@Table(name = "`user`") // Corrige le problème avec le mot réservé
 public class User {
 
     @Id
+    @Column(name = "id_user")
     private int id_user;
+
+    @Column(name = "username")
     private String username;
+
+    @Column(name = "email")
     private String email;
+
+    @Column(name = "password")
     private String password;
+
+    @Column(name = "telephone")
     private String telephone;
+
+    @Column(name = "role")
     private String role; // 'fournisseur', 'client', 'admin'
 
     // Getters and setters
-
     public int getId_user() {
         return id_user;
     }

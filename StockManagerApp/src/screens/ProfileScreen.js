@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState , useEffect } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,24 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import bgImage from '../assets/bg.jpg';
 import profilePic from '../assets/profile-placeholder.jpg';
 import BottomNavBar from '../components/BottomNavBar';
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
 export default function ProfileScreen() {
   const navigation = useNavigation();
+  
+  const route = useRoute(); 
+  
+  
   const [imageUri, setImageUri] = useState(null);
+   const [userData, setUserData] = useState({
+  username: 'Achraf ELMOUDEN',
+  role: 'Admin',
+});
+
+   useEffect(() => {
+    if (route.params?.updatedData) {
+      setUserData(route.params.updatedData);
+    }
+  }, [route.params?.updatedData]);
 
   // ✅ Demande de permission (Android)
   const requestGalleryPermission = async () => {
@@ -98,14 +111,29 @@ export default function ProfileScreen() {
               <Camera size={14} color="#fff" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.username}>Achraf ELMOUDEN</Text>
-          <Text style={styles.role}>Admin</Text>
+         {/* ✅ Affichage dynamique des données */}
+          <Text style={styles.username}>{userData.username}</Text>
+          <Text style={styles.role}>{userData.role}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.options}>
-          <OptionButton label="Account Information" icon={<User size={18} color="#4e5e30" />} editable />
-          <OptionButton label="Settings" icon={<Settings size={18} color="#4e5e30" />} />
-          <OptionButton label="Password" icon={<Lock size={18} color="#4e5e30" />} editable />
+          <OptionButton
+  label="Account Information"
+  icon={<User size={18} color="#4e5e30" />}
+  editable
+  onPress={() => navigation.navigate('AccountInfo', { userData })}
+/>
+
+          <OptionButton label="Settings" icon={<Settings size={18} color="#4e5e30" />}
+          editable
+  onPress={() => navigation.navigate('Settings')} />
+          <OptionButton
+  label="Password"
+  icon={<Lock size={18} color="#4e5e30" />}
+  editable
+  onPress={() => navigation.navigate('Password')}
+/>
+
           <OptionButton label="Log Out" icon={<LogOut size={18} color="#4e5e30" />} onPress={() => navigation.navigate('Login')} />
         </ScrollView>
       </View>
