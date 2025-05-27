@@ -42,7 +42,7 @@ const ProduitScreen = ({ route, navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title={categorieNom}
+        title="Stock"
         active="stock"
         onGoBack={() => navigation.goBack()}
       />
@@ -54,7 +54,7 @@ const ProduitScreen = ({ route, navigation }) => {
         marginVertical: 20,
         color: '#111827',
       }}>
-        Produits
+        {categorieNom}
       </Text>
 
       <FlatList

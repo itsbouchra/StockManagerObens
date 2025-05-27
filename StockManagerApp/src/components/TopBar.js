@@ -5,6 +5,7 @@ import {
   Home,
   Boxes,
   Bell,
+  Package, 
   Settings,
 } from 'lucide-react-native';
 
@@ -17,6 +18,8 @@ const TopBar = ({ title, active = 'home', onGoBack }) => {
         return <Home size={28} color={iconColor('home')} />;
       case 'stock':
         return <Boxes size={28} color={iconColor('stock')} />;
+         case 'ProductAD':
+        return <Package size={28} color={iconColor('ProductAD')} />;
       default:
         return null;
     }

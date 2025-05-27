@@ -54,8 +54,8 @@ const ProductAD = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Stock"
-        active="stock"
+        title="Produits"
+        active="ProductAD"
         onGoBack={() => navigation.goBack()}
       />
 
@@ -82,7 +82,7 @@ const ProductAD = ({ navigation }) => {
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('ProduitScreen', {
+              navigation.navigate('ProductsAdmin', {
                 id_categorie: item.id_categorie,
                 categorieNom: item.nom,
               })
@@ -117,7 +117,7 @@ const ProductAD = ({ navigation }) => {
       />
 
       {/* Product icon active here */}
-      <BottomNavBar navigation={navigation} currentRoute="Product" />
+      <BottomNavBar navigation={navigation} currentRoute="ProductAD" />
     </View>
   );
 };
