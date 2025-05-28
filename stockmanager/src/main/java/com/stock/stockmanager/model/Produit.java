@@ -2,9 +2,10 @@ package com.stock.stockmanager.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,33 +33,44 @@ public class Produit {
 
     private String unit; // e.g. "Kg", "L"
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "id_categorie")
     private Categorie categorie;
 
     @OneToMany(mappedBy = "produit")
+    @JsonIgnore
     private List<Stock> stocks;
 
     @OneToMany(mappedBy = "produit")
+    @JsonIgnore
     private List<Reception> receptions;
 
     @OneToMany(mappedBy = "produit")
+    @JsonIgnore
     private List<Livraison> livraisons;
+
+
+
+    public Produit() {
+        // obligatoire pour Hibernate
+    }
 
     public Produit(String photo) {
         this.photo = photo;
     }
 
-    public Produit(String laptop, int i, double d) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public Produit(String photo, String nom, String description, Float prix, String unit, Integer stockMin, Categorie categorie) {
+        this.photo = photo;
+        this.nom = nom;
+        this.description = description;
+        this.prix = prix;
+        this.unit = unit;
+        this.stockMin = stockMin;
+        this.categorie = categorie;
     }
-    public Produit() {
-    // obligatoire pour Hibernate
-     }
 
-
-    // Getters and setters...
- public Integer getId() {
+    // Getters and Setters
+    public Integer getId() {
         return id;
     }
 
@@ -114,22 +126,6 @@ public class Produit {
         this.stockMin = stockMin;
     }
 
-    public List getStocks() {
-        return stocks;
-    }
-
-    public void setStocks(List stocks) {
-        this.stocks = stocks;
-    }
-
-    public List getReceptions() {
-        return receptions;
-    }
-
-    public void setReceptions(List receptions) {
-        this.receptions = receptions;
-    }
-
     public Categorie getCategorie() {
         return categorie;
     }
@@ -138,11 +134,37 @@ public class Produit {
         this.categorie = categorie;
     }
 
-    public List getLivraisons() {
+    public List<Stock> getStocks() {
+        return stocks;
+    }
+
+    public void setStocks(List<Stock> stocks) {
+        this.stocks = stocks;
+    }
+
+    public List<Reception> getReceptions() {
+        return receptions;
+    }
+
+    public void setReceptions(List<Reception> receptions) {
+        this.receptions = receptions;
+    }
+
+    public List<Livraison> getLivraisons() {
         return livraisons;
     }
 
-    public void setLivraisons(List livraisons) {
+    public void setLivraisons(List<Livraison> livraisons) {
         this.livraisons = livraisons;
+    }
+
+    @Override
+    public String toString() {
+        return "Produit{" +
+                "id=" + id +
+                ", nom='" + nom + '\'' +
+                ", prix=" + prix +
+                ", stockMin=" + stockMin +
+                '}';
     }
 }

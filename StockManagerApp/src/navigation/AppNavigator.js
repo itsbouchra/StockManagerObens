@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -6,7 +7,12 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen'; 
 import Dashboard from '../screens/Dashboard';
 import BottomNavBar from '../components/BottomNavBar';
-import CategorieScreen from '../screens/CategorieScreen';
+import CategorieScreen from '../screens/CategorieScreen'; 
+import ProduitScreen from '../screens/ProduitScreen'; 
+import ProductAD from '../screens/ProductAD'; 
+import ProductsAdmin from '../screens/ProductsAdmin'; 
+import AddProductScreen from '../screens/AddProductScreen'; 
+import ProductDetailScreen from '../screens/ProductDetailScreen'; 
 import ProfileScreen from '../screens/ProfileScreen';
 
 
@@ -49,6 +55,31 @@ const AppNavigator = () => {
           component={CategorieScreen}
           options={{ headerShown: false }}
         />
+         <Stack.Screen
+          name="ProduitScreen"
+          component={ProduitScreen}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="ProductAD"
+          component={ProductAD}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProductsAdmin"
+          component={ProductsAdmin}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddProductScreen"
+          component={AddProductScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProductDetailScreen"
+          component={ProductDetailScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
   name="Profile"
   component={ProfileScreen}
@@ -61,3 +92,4 @@ const AppNavigator = () => {
 };
 
 export default AppNavigator;
+
