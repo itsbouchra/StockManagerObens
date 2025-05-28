@@ -14,6 +14,9 @@ import ProductsAdmin from '../screens/ProductsAdmin';
 import AddProductScreen from '../screens/AddProductScreen'; 
 import ProductDetailScreen from '../screens/ProductDetailScreen'; 
 import ProfileScreen from '../screens/ProfileScreen';
+import AccountInformationScreen from '../screens/AccountInformationScreen';
+import PasswordScreen from '../screens/PasswordScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -85,6 +88,23 @@ const AppNavigator = () => {
   component={ProfileScreen}
   options={{ headerShown: false }}
 />
+<Stack.Screen
+  name="AccountInfo"
+  component={AccountInformationScreen}
+  options={{ headerShown: false }}
+/>
+<Stack.Screen
+  name="Password"
+  component={PasswordScreen}
+  options={{ headerShown: false }}
+/>
+<Stack.Screen
+  name="Settings"
+  component={SettingsScreen}
+  options={{ headerShown: false }}
+/>
+
+
 
       </Stack.Navigator>
     </NavigationContainer>
