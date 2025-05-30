@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -22,6 +21,7 @@ const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const AddProductScreen = ({ route, navigation }) => {
   const { id_categorie } = route.params || {};
+  console.log('id_categorie:', id_categorie); // <-- Add this line
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState('');
@@ -61,7 +61,7 @@ const AddProductScreen = ({ route, navigation }) => {
       prix: parseFloat(prix),
       unit,
       stockMin: parseInt(stockMin, 10),
-      categorie: { id_categorie },  // utilisation de l'ID passé en param
+      categorieId: id_categorie, // This is what your backend expects!
     };
     try {
       const res = await fetch(`${API_BASE_URL}/produits/add`, {
@@ -128,10 +128,12 @@ const AddProductScreen = ({ route, navigation }) => {
             </Text>
           </TouchableOpacity>
           {photo && (
-<Image
-  source={photo ? { uri: photo } : defaultImage}
-  style={styles.preview}
-/>
+        <Image
+          source={photo ? { uri: photo } : defaultImage}
+          style={styles.preview}
+        />
+
+
           )}
 
           {/** Prix, unité, stock */}

@@ -14,6 +14,8 @@ import ProductsAdmin from '../screens/ProductsAdmin';
 import AddProductScreen from '../screens/AddProductScreen'; 
 import ProductDetailScreen from '../screens/ProductDetailScreen'; 
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProductScreen from '../screens/EditProductScreen';
+
 
 
 const Stack = createNativeStackNavigator();
@@ -80,6 +82,10 @@ const AppNavigator = () => {
           component={ProductDetailScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+        name="EditProductScreen"
+        component={EditProductScreen}
+        options={{ headerShown: false }}/>
         <Stack.Screen
   name="Profile"
   component={ProfileScreen}

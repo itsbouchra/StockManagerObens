@@ -59,64 +59,57 @@ const ProductsAdmin = ({ route, navigation }) => {
         onGoBack={() => navigation.goBack()}
       />
 
-
-<Text
-  style={{
-    fontSize: 30,
-        fontWeight: 'bold',
-        marginTop: 19,
-        color: '#4A444A',
-        marginBottom: 16,
-        alignSelf: 'center',
-        marginTop: 14,   // Ajouté
-  }}
->
-  {categorieNom}
-</Text>
-
-
+      <Text
+        style={{
+          fontSize: 30,
+          fontWeight: 'bold',
+          color: '#4A444A',
+          marginBottom: 16,
+          alignSelf: 'center',
+          marginTop: 14,
+        }}
+      >
+        {categorieNom}
+      </Text>
 
       <FlatList
-  data={produits}
-  keyExtractor={(item) => item.id.toString()}
-  contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
- renderItem={({ item }) => (
-  <TouchableOpacity
-    onPress={() => {
-      console.log("Navigating to details with ID:", item.id); // ✅ This will log
-      navigation.navigate('ProductDetailScreen', { id_produit: item.id }); // ✅ This will navigate
-    }}
-      style={{
-        flexDirection: 'row',
-        backgroundColor: '#e5e7eb',
-        marginBottom: 12,
-        padding: 12,
-        borderRadius: 10,
-        alignItems: 'center',
-        elevation: 2,
-      }}
-    >
-      <Image
-        source={{
-          uri: `${API_BASE_URL}/images/${item.photo?.trim() || 'default.jpg'}`,
-        }}
-        style={{ width: 70, height: 70, borderRadius: 8, marginRight: 16 }}
+        data={produits}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => {
+              console.log("Navigating to details with ID:", item.id);
+              navigation.navigate('ProductDetailScreen', { id_produit: item.id });
+            }}
+            style={{
+              flexDirection: 'row',
+              backgroundColor: '#e5e7eb',
+              marginBottom: 12,
+              padding: 12,
+              borderRadius: 10,
+              alignItems: 'center',
+              elevation: 2,
+            }}
+          >
+            <Image
+              source={{
+                uri: `${API_BASE_URL}/images/${item.photo?.trim() || 'default.jpg'}`,
+              }}
+              style={{ width: 70, height: 70, borderRadius: 8, marginRight: 16 }}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111827' }}>
+                {item.nom}
+              </Text>
+              <Text style={{ color: '#6b7280', fontSize: 14 }}>{item.prix} DH</Text>
+            </View>
+          </TouchableOpacity>
+        )}
       />
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111827' }}>
-          {item.nom}
-        </Text>
-        <Text style={{ color: '#6b7280', fontSize: 14 }}>{item.prix} DH</Text>
-      </View>
-    </TouchableOpacity>
-  )}
-/>
-
 
       <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('AddProductScreen', { id_categorie })
-        }
+onPress={() => navigation.navigate('AddProductScreen', { id_categorie: id_categorie })}
         style={{
           position: 'absolute',
           bottom: 90,
@@ -139,5 +132,3 @@ const ProductsAdmin = ({ route, navigation }) => {
 };
 
 export default ProductsAdmin;
-
-
