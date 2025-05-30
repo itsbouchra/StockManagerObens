@@ -41,6 +41,19 @@ const ProductsAdmin = ({ route, navigation }) => {
     if (isFocused) fetchProduits();
   }, [isFocused]);
 
+  const getImageSource = (photo) => {
+    if (!photo || photo.trim() === '') {
+      return { uri: `${API_BASE_URL}/images/default.jpg` }; // or .png
+    }
+    const trimmedPhoto = photo.trim();
+    if (trimmedPhoto.startsWith('static/')) {
+      // If you ever have this, map to /images/default.jpg
+      return { uri: `${API_BASE_URL}/images/default.jpg` };
+    }
+    // Just a filename, add the folder
+    return { uri: `${API_BASE_URL}/images/${trimmedPhoto}` };
+  };
+
   if (loading) {
     return (
       <View style={{
@@ -93,9 +106,7 @@ const ProductsAdmin = ({ route, navigation }) => {
             }}
           >
             <Image
-              source={{
-                uri: `${API_BASE_URL}/images/${item.photo?.trim() || 'default.jpg'}`,
-              }}
+              source={getImageSource(item.photo?.trim())}
               style={{ width: 70, height: 70, borderRadius: 8, marginRight: 16 }}
             />
             <View style={{ flex: 1 }}>

@@ -152,13 +152,15 @@ setPhotoFilename(data.photo || '');
 
      Toast.show({
   type: 'success',
-  text1: '✅ Produit mis à jour',
-  text2: 'Les modifications ont été enregistrées.',
+  text1: '✅ Produit modifié avec succès',
+  text2: 'Votre produit a été mis à jour.',
   position: 'top',
 });
 
-
-      navigation.goBack();
+      // Delay navigation to allow toast to show
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1400); // 1.4 seconds, same as add
     } catch (err) {
       Toast.show({
         type: 'error',
