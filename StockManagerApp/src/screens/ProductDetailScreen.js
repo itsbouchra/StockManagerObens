@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Modal,
 } from 'react-native';
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -24,6 +25,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
   const [produit, setProduit] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const isFocused = useIsFocused();
 
   const fetchProduit = async () => {
@@ -40,46 +42,34 @@ const ProductDetailScreen = ({ route, navigation }) => {
     }
   };
 
-  const supprimerProduit = () => {
-  Alert.alert(
-    'Confirmation',
-    'Voulez-vous vraiment supprimer ce produit ?',
-    [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Supprimer',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            const response = await fetch(`${API_BASE_URL}/produits/${produit.id}`, {
-              method: 'DELETE',
-            });
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/produits/${produit.id}`, {
+        method: 'DELETE',
+      });
 
-            if (!response.ok) {
-              throw new Error('Erreur de suppression');
-            }
+      if (!response.ok) {
+        throw new Error('Erreur de suppression');
+      }
 
-            Toast.show({
-              type: 'success',
-              text1: 'Succès',
-              text2: 'Produit supprimé avec succès 👋',
-            });
+      Toast.show({
+        type: 'success',
+        text1: 'Succès',
+        text2: 'Produit supprimé avec succès 👋',
+      });
 
-            navigation.goBack();
-          } catch (error) {
-            console.error('Erreur lors de la suppression :', error);
-            Toast.show({
-              type: 'error',
-              text1: 'Erreur',
-              text2: 'Échec de la suppression ❌',
-            });
-          }
-        },
-      },
-    ]
-  );
-};
-
+      navigation.goBack();
+    } catch (error) {
+      console.error('Erreur lors de la suppression :', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: 'Échec de la suppression ❌',
+      });
+    } finally {
+      setShowDeleteModal(false);
+    }
+  };
 
   useEffect(() => {
     if (isFocused) {
@@ -150,11 +140,45 @@ const ProductDetailScreen = ({ route, navigation }) => {
             <Text style={styles.buttonText}>Modifier</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton} onPress={supprimerProduit}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setShowDeleteModal(true)}
+          >
             <Trash2 color="#E1B12C" size={20} />
             <Text style={styles.buttonText}>Supprimer</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Modern Delete Confirmation Modal */}
+        <Modal
+          visible={showDeleteModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Supprimer le produit ?</Text>
+              <Text style={styles.modalText}>
+                Êtes-vous sûr de vouloir supprimer ce produit ?
+              </Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setShowDeleteModal(false)}
+                >
+                  <Text style={styles.cancelButtonText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
+                  <Text style={styles.deleteButtonText}>Supprimer</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </ScrollView>
       <BottomNavBar navigation={navigation} currentRoute="ProductAD" />
     </View>
@@ -225,6 +249,63 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
     fontSize: 19,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 28,
+    width: 320,
+    alignItems: 'center',
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#EF4444',
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    color: '#333',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: '#e5e7eb',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginRight: 8,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#111827',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: '#EF4444',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginLeft: 8,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   
 });
