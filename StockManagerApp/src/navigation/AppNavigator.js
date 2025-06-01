@@ -1,23 +1,25 @@
-
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
-import LoginScreen from '../screens/LoginScreen'; 
+import LoginScreen from '../screens/LoginScreen';
 import Dashboard from '../screens/Dashboard';
 import BottomNavBar from '../components/BottomNavBar';
-import CategorieScreen from '../screens/CategorieScreen'; 
-import ProduitScreen from '../screens/ProduitScreen'; 
-import ProductAD from '../screens/ProductAD'; 
-import ProductsAdmin from '../screens/ProductsAdmin'; 
-import AddProductScreen from '../screens/AddProductScreen'; 
-import ProductDetailScreen from '../screens/ProductDetailScreen'; 
+import CategorieScreen from '../screens/CategorieScreen';
+import ProduitScreen from '../screens/ProduitScreen';
+import ProductAD from '../screens/ProductAD';
+import ProductsAdmin from '../screens/ProductsAdmin';
+import AddProductScreen from '../screens/AddProductScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+
+
 import AccountInformationScreen from '../screens/AccountInformationScreen';
 import PasswordScreen from '../screens/PasswordScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-
+import AddUserScreen from '../screens/AddUserScreen';
+import UsersScreen from '../screens/UsersScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -47,7 +49,6 @@ const AppNavigator = () => {
             headerTintColor: '#fff',
           }}
         />
-       
         <Stack.Screen
           name="Dashboard"
           component={DashboardWithNavbar}
@@ -58,12 +59,12 @@ const AppNavigator = () => {
           component={CategorieScreen}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="ProduitScreen"
           component={ProduitScreen}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="ProductAD"
           component={ProductAD}
           options={{ headerShown: false }}
@@ -83,29 +84,37 @@ const AppNavigator = () => {
           component={ProductDetailScreen}
           options={{ headerShown: false }}
         />
+        
         <Stack.Screen
-  name="Profile"
-  component={ProfileScreen}
-  options={{ headerShown: false }}
-/>
-<Stack.Screen
-  name="AccountInfo"
-  component={AccountInformationScreen}
-  options={{ headerShown: false }}
-/>
-<Stack.Screen
-  name="Password"
-  component={PasswordScreen}
-  options={{ headerShown: false }}
-/>
-<Stack.Screen
-  name="Settings"
-  component={SettingsScreen}
-  options={{ headerShown: false }}
-/>
-
-
-
+          name="Profile"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AccountInfo"
+          component={AccountInformationScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Password"
+          component={PasswordScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddUserScreen"
+          component={AddUserScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UsersScreen"
+          component={UsersScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
