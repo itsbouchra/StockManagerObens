@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,7 +26,9 @@ import com.stock.stockmanager.repository.ProduitRepository;
 @RequestMapping("/produits")
 public class ProduitController {
 
+    @Autowired
     private final ProduitRepository produitRepository;
+
     private final CategorieRepository categorieRepository;
 
     public ProduitController(ProduitRepository produitRepository, CategorieRepository categorieRepository) {

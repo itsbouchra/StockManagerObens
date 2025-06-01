@@ -15,6 +15,9 @@ import AddProductScreen from '../screens/AddProductScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen'; 
 import ProfileScreen from '../screens/ProfileScreen';
 import EditProductScreen from '../screens/EditProductScreen';
+import BuysScreen from '../screens/BuysScreen';
+import AddOrderScreen from '../screens/AddOrderScreen';
+
 
 
 
@@ -80,6 +83,16 @@ const AppNavigator = () => {
         <Stack.Screen
           name="ProductDetailScreen"
           component={ProductDetailScreen}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="BuysScreen"
+          component={BuysScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="AddOrderScreen"
+          component={AddOrderScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

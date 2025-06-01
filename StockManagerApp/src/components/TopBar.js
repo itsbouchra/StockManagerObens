@@ -7,6 +7,7 @@ import {
   Bell,
   Package, 
   Settings,
+  ShoppingCart,
 } from 'lucide-react-native';
 
 const TopBar = ({ title, active = 'home', onGoBack }) => {
@@ -20,6 +21,8 @@ const TopBar = ({ title, active = 'home', onGoBack }) => {
         return <Boxes size={28} color={iconColor('stock')} />;
          case 'ProductAD':
         return <Package size={28} color={iconColor('ProductAD')} />;
+         case 'BuysScreen':
+        return <ShoppingCart size={28} color={iconColor('BuysScreen')} />;
       default:
         return null;
     }

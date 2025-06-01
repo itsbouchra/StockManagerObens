@@ -5,9 +5,12 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -18,13 +21,14 @@ public class Achat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_achat")
-  private Integer id; 
-    @Column(name = "date_achat")
-    private LocalDate dateAchat;
+    private Integer id;
 
-    // @ManyToOne(fetch = FetchType.LAZY)
-    // @JoinColumn(name = "id_fournisseur")
-    // private User fournisseur;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "id_user")
+    private User user;
+
+    @Column(name = "date_achat") 
+    private LocalDate dateAchat;
 
     @Column(name = "montant_total")
     private Double montantTotal;
@@ -36,29 +40,20 @@ public class Achat {
 
     // Getters and setters...
 
-    public LocalDate getDateAchat() {
-        return dateAchat;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setDateAchat(LocalDate dateAchat) {
-        this.dateAchat = dateAchat;
-    }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 
-    public Double getMontantTotal() {
-        return montantTotal;
-    }
+public LocalDate getDateAchat() { return dateAchat; }
+    public void setDateAchat(LocalDate dateAchat) { this.dateAchat = dateAchat; }
 
-    public void setMontantTotal(Double montantTotal) {
-        this.montantTotal = montantTotal;
-    }
+    public Double getMontantTotal() { return montantTotal; }
+    public void setMontantTotal(Double montantTotal) { this.montantTotal = montantTotal; }
 
-    public String getStatut() {
-        return statut;
-    }
-
-    public void setStatut(String statut) {
-        this.statut = statut;
-    }
+    public String getStatut() { return statut; }
+    public void setStatut(String statut) { this.statut = statut; }
 
     public List<Reception> getReceptions() {
         return receptions;
@@ -66,12 +61,5 @@ public class Achat {
 
     public void setReceptions(List<Reception> receptions) {
         this.receptions = receptions;
-    }
-
-  public Integer getId() {   // <-- getter en Integer
-        return id;
-    }
-      public void setId(Integer id) {  // <-- setter en Integer
-        this.id = id;
     }
 }

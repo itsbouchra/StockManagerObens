@@ -1,7 +1,13 @@
 package com.stock.stockmanager.repository;
 
-import com.stock.stockmanager.model.Achat;
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-public interface AchatRepository extends JpaRepository<Achat, Long> {
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import com.stock.stockmanager.model.Achat;
+
+public interface AchatRepository extends JpaRepository<Achat, Integer> {
+    @Query("SELECT a FROM Achat a JOIN FETCH a.user")
+    List<Achat> findAllWithUser();
 }
