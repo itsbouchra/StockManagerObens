@@ -35,7 +35,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         {/* Settings Options */}
-        <TouchableOpacity style={styles.optionBox}>
+        <TouchableOpacity style={styles.optionBox}onPress={() => navigation.navigate('UsersScreen')}>
           <View style={styles.iconText}>
             <Users size={22} color="#4e5e30" />
             <View style={{ marginLeft: 10 }}>
