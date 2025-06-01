@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -22,6 +21,7 @@ const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const AddProductScreen = ({ route, navigation }) => {
   const { id_categorie } = route.params || {};
+  console.log('id_categorie:', id_categorie); // <-- Add this line
   const [nom, setNom] = useState('');
   const [description, setDescription] = useState('');
   const [photo, setPhoto] = useState('');
@@ -45,24 +45,29 @@ const AddProductScreen = ({ route, navigation }) => {
   };
 
   const handleAddProduct = async () => {
-    if (!nom || !prix) {
+    if (!nom || !prix || !stockMin) {
       return Toast.show({
         type: 'error',
-        text1: 'Nom et prix obligatoires',
+        text1: 'Nom, prix et stock min. obligatoires',
         position: 'top',
         visibilityTime: 2000,
       });
     }
     setLoading(true);
+
+    // Set default image path as string if none selected
+    const defaultImagePath = 'default.png'; // or 'default.png' if that's the file
+
     const payload = {
       nom,
       description,
-      photo,
+      photo: photo || defaultImagePath, // Use string path for default
       prix: parseFloat(prix),
       unit,
       stockMin: parseInt(stockMin, 10),
-      categorie: { id_categorie },  // utilisation de l'ID passé en param
+      categorieId: id_categorie,
     };
+
     try {
       const res = await fetch(`${API_BASE_URL}/produits/add`, {
         method: 'POST',
@@ -70,22 +75,27 @@ const AddProductScreen = ({ route, navigation }) => {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw await res.json();
-      Toast.show({
-  type: 'success',
-  text1: '✅ Produit ajouté avec succès',
-  text2: 'Votre produit a été enregistré.',
-  position: 'top',
-});
 
-      navigation.goBack();
+      // Show success toast BEFORE navigating back
+      Toast.show({
+        type: 'success',
+        text1: '✅ Produit ajouté avec succès',
+        text2: 'Votre produit a été enregistré.',
+        position: 'top',
+      });
+
+      // Delay navigation to allow toast to show
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1400); // 1.2 seconds is enough for the toast to appear
     } catch (err) {
       console.error(err);
       Toast.show({
-  type: 'error',
-  text1: '❌ Échec de l\'ajout',
-  text2: err.message || 'Vérifiez les champs ou réessayez.',
-  position: 'top',
-});
+        type: 'error',
+        text1: '❌ Échec de l\'ajout',
+        text2: err.message || 'Vérifiez les champs ou réessayez.',
+        position: 'top',
+      });
 
     } finally {
       setLoading(false);
@@ -127,12 +137,10 @@ const AddProductScreen = ({ route, navigation }) => {
               {photo ? 'Changer image' : 'Ajouter image'}
             </Text>
           </TouchableOpacity>
-          {photo && (
-<Image
+          <Image
   source={photo ? { uri: photo } : defaultImage}
   style={styles.preview}
 />
-          )}
 
           {/** Prix, unité, stock */}
           <Text style={styles.label}>Prix *</Text>

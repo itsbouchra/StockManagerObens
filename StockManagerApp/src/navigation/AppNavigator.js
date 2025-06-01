@@ -1,23 +1,22 @@
-
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import WelcomeScreen from '../screens/WelcomeScreen';
-import LoginScreen from '../screens/LoginScreen'; 
+import LoginScreen from '../screens/LoginScreen';
 import Dashboard from '../screens/Dashboard';
 import BottomNavBar from '../components/BottomNavBar';
-import CategorieScreen from '../screens/CategorieScreen'; 
-import ProduitScreen from '../screens/ProduitScreen'; 
-import ProductAD from '../screens/ProductAD'; 
-import ProductsAdmin from '../screens/ProductsAdmin'; 
-import AddProductScreen from '../screens/AddProductScreen'; 
-import ProductDetailScreen from '../screens/ProductDetailScreen'; 
+import CategorieScreen from '../screens/CategorieScreen';
+import ProduitScreen from '../screens/ProduitScreen';
+import ProductAD from '../screens/ProductAD';
+import ProductsAdmin from '../screens/ProductsAdmin';
+import AddProductScreen from '../screens/AddProductScreen';
+import ProductDetailScreen from '../screens/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProductScreen from '../screens/EditProductScreen';
 import AccountInformationScreen from '../screens/AccountInformationScreen';
 import PasswordScreen from '../screens/PasswordScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-
 
 const Stack = createNativeStackNavigator();
 
@@ -47,7 +46,6 @@ const AppNavigator = () => {
             headerTintColor: '#fff',
           }}
         />
-       
         <Stack.Screen
           name="Dashboard"
           component={DashboardWithNavbar}
@@ -83,6 +81,10 @@ const AppNavigator = () => {
           component={ProductDetailScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+        name="EditProductScreen"
+        component={EditProductScreen}
+        options={{ headerShown: false }}/>
         <Stack.Screen
   name="Profile"
   component={ProfileScreen}
