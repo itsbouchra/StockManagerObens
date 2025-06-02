@@ -101,7 +101,7 @@ const AddOrderScreen = ({ navigation }) => {
             onValueChange={itemValue => setFournisseurSelected(itemValue)}
             enabled={!loadingFournisseurs && fournisseurs.length > 0}
           >
-            <Picker.Item label="Sélectionnez un fournisseur" value={undefined} />
+            <Picker.Item label="Sélectionnez un fournisseur" value="" />
             {fournisseurs.map(f => (
               <Picker.Item key={f.id_user} label={f.username} value={f.id_user} />
             ))}
@@ -149,7 +149,7 @@ const AddOrderScreen = ({ navigation }) => {
             }}
             enabled={!loadingCategories && categories.length > 0}
           >
-            <Picker.Item label="Sélectionnez une catégorie" value={null} />
+            <Picker.Item label="Sélectionnez une catégorie" value="" />
             {categories.map(c => (
               <Picker.Item key={c.id_categorie} label={c.nom} value={c.id_categorie} />
             ))}
@@ -205,9 +205,8 @@ const AddOrderScreen = ({ navigation }) => {
         {lignes.map((ligne, idx) => (
           <View key={ligne.key} style={styles.ligneContainer}>
             {/* Affiche le nom du produit sélectionné */}
-            {console.log('ligne.produit:', ligne.produit)}
             <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#166534', marginBottom: 8, marginLeft: 2 }}>
-              {ligne.produit.nom}
+              {ligne.produit && typeof ligne.produit.nom === 'string' ? ligne.produit.nom : ''}
             </Text>
             <View style={styles.row}>
               <TextInput
@@ -263,18 +262,73 @@ const AddOrderScreen = ({ navigation }) => {
               paddingHorizontal: 32,
               borderRadius: 32,
               elevation: 4,
+              opacity: (lignes.length === 0 || !fournisseurSelected || !date) ? 0.6 : 1,
             }}
             onPress={async () => {
-              if (!fournisseurSelected || !date || lignes.length === 0) return;
+              // Vérification des champs obligatoires
+              if (!fournisseurSelected) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Fournisseur obligatoire',
+                  text2: 'Veuillez sélectionner un fournisseur.',
+                  position: 'top',
+                  visibilityTime: 2000,
+                });
+                return;
+              }
+              if (!date) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Date obligatoire',
+                  text2: 'Veuillez sélectionner une date.',
+                  position: 'top',
+                  visibilityTime: 2000,
+                });
+                return;
+              }
+              if (lignes.length === 0) {
+                Toast.show({
+                  type: 'error',
+                  text1: 'Produit obligatoire',
+                  text2: 'Ajoutez au moins un produit.',
+                  position: 'top',
+                  visibilityTime: 2000,
+                });
+                return;
+              }
+              // Vérifie chaque ligne produit
+              for (let i = 0; i < lignes.length; i++) {
+                const l = lignes[i];
+                if (!l.quantite || Number(l.quantite) <= 0) {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Quantité invalide',
+                    text2: `Quantité manquante ou invalide pour le produit "${l.produit?.nom || ''}".`,
+                    position: 'top',
+                    visibilityTime: 2000,
+                  });
+                  return;
+                }
+                if (!l.prix || Number(l.prix) <= 0) {
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Prix invalide',
+                    text2: `Prix manquant ou invalide pour le produit "${l.produit?.nom || ''}".`,
+                    position: 'top',
+                    visibilityTime: 2000,
+                  });
+                  return;
+                }
+              }
 
               try {
                 const achat = {
                   dateAchat: date,
                   idFournisseur: fournisseurSelected,
-                  statut: "", // vide pour le moment
+                  statut: "",
                   montantTotal: totalGeneral,
                   lignes: lignes.map(l => ({
-                    idProduit: l.produit.id, // ← c'est 'id' dans ton modèle Java
+                    idProduit: l.produit.id,
                     quantite: Number(l.quantite),
                     prix: Number(l.prix),
                     total: Number(l.total),
@@ -288,16 +342,32 @@ const AddOrderScreen = ({ navigation }) => {
                 });
 
                 if (res.ok) {
-                  Toast.show({ type: 'success', text1: 'Commande ajoutée !' });
-                  navigation.navigate('BuysScreen'); // Retour à la liste des achats
+                  Toast.show({
+                    type: 'success',
+                    text1: '✅ Achat ajouté avec succès',
+                    text2: 'Votre commande a été enregistrée.',
+                    position: 'top',
+                  });
+                  setTimeout(() => navigation.navigate('BuysScreen'), 1400);
                 } else {
-                  Toast.show({ type: 'error', text1: 'Erreur lors de l\'ajout' });
+                  Toast.show({
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: 'Erreur lors de l\'ajout',
+                    position: 'top',
+                    visibilityTime: 2000,
+                  });
                 }
               } catch (e) {
-                Toast.show({ type: 'error', text1: 'Erreur réseau', text2: e.message });
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur réseau',
+                  text2: e.message,
+                  position: 'top',
+                  visibilityTime: 2000,
+                });
               }
             }}
-            disabled={lignes.length === 0 || !fournisseurSelected || !date}
           >
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Ajouter</Text>
           </TouchableOpacity>

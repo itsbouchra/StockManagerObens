@@ -3,6 +3,8 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -36,10 +38,11 @@ public class Achat {
 
     private String statut;
 
-    @OneToMany(mappedBy = "achat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "achat", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<LigneAchat> lignes;
 
-    @OneToMany(mappedBy = "achat")
+    @OneToMany(mappedBy = "achat", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reception> receptions;
 
     // Getters and setters...

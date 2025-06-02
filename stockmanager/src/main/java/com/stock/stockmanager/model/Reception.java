@@ -3,6 +3,8 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -25,6 +27,7 @@ public class Reception {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_achat")
+    @JsonIgnore // Ajoute cette ligne
     private Achat achat;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,8 +39,7 @@ public class Reception {
 
     private Integer quantite;
 
-    @Column(name = "ref_produit")
-    private String refProduit;
+
 
     private String statut; // conf / semi-conf / non-conf
 
@@ -96,14 +98,7 @@ public class Reception {
         this.statut = statut;
     }
 
-    public String getRefProduit() {
-        return refProduit;
-    }
-
-    public void setRefProduit(String refProduit) {
-        this.refProduit = refProduit;
-    }
-
+   
     public String getRefLot() {
         return refLot;
     }
