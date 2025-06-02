@@ -53,8 +53,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     backgroundColor: 'rgba(112, 130, 56, 0.95)', // semi-transparent
     paddingTop: 19, // increased to add space above icons
-    paddingBottom: 29, // reduced so icons sit inside the bar
-    height: 80,
+    paddingBottom: 25, // reduced so icons sit inside the bar
+    height: 85,
     alignItems: 'flex-end', // align icons to the bottom
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,

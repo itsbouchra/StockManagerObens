@@ -3,6 +3,7 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -35,6 +36,9 @@ public class Achat {
 
     private String statut;
 
+    @OneToMany(mappedBy = "achat", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<LigneAchat> lignes;
+
     @OneToMany(mappedBy = "achat")
     private List<Reception> receptions;
 
@@ -54,6 +58,14 @@ public LocalDate getDateAchat() { return dateAchat; }
 
     public String getStatut() { return statut; }
     public void setStatut(String statut) { this.statut = statut; }
+
+    public List<LigneAchat> getLignes() {
+        return lignes;
+    }
+
+    public void setLignes(List<LigneAchat> lignes) {
+        this.lignes = lignes;
+    }
 
     public List<Reception> getReceptions() {
         return receptions;

@@ -1,5 +1,8 @@
 package com.stock.stockmanager.dto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.stock.stockmanager.model.Achat;
 import com.stock.stockmanager.model.User;
 
@@ -10,6 +13,8 @@ public class AchatDTO {
     private String statut;
     private String username;
     private String nomFournisseur;
+    private Integer idFournisseur;
+    private List<LigneAchatDTO> lignes;
 
     // Default constructor
     public AchatDTO() {}
@@ -23,12 +28,20 @@ public class AchatDTO {
         this.statut = achat.getStatut();
 
         User user = achat.getUser();
-        if (user != null) {
+        if (user != null && "fournisseur".equalsIgnoreCase(user.getRole())) {
             this.username = user.getUsername();
-            this.nomFournisseur = "fournisseur".equalsIgnoreCase(user.getRole()) ? user.getUsername() : null;
+            this.nomFournisseur = user.getUsername();
+            this.idFournisseur = user.getId_user();
         } else {
             this.username = null;
             this.nomFournisseur = null;
+            this.idFournisseur = null;
+        }
+        System.out.println("Nombre de lignes pour achat " + achat.getId() + " : " + (achat.getLignes() != null ? achat.getLignes().size() : 0));
+        if (achat.getLignes() != null) {
+            this.lignes = achat.getLignes().stream()
+                .map(LigneAchatDTO::new)
+                .collect(Collectors.toList());
         }
     }
 
@@ -81,4 +94,10 @@ public class AchatDTO {
     public void setNomFournisseur(String nomFournisseur) {
         this.nomFournisseur = nomFournisseur;
     }
+
+    public Integer getIdFournisseur() { return idFournisseur; }
+    public void setIdFournisseur(Integer idFournisseur) { this.idFournisseur = idFournisseur; }
+
+    public List<LigneAchatDTO> getLignes() { return lignes; }
+    public void setLignes(List<LigneAchatDTO> lignes) { this.lignes = lignes; }
 }

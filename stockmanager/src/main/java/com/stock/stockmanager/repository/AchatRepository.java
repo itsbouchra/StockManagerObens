@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import com.stock.stockmanager.model.Achat;
 
 public interface AchatRepository extends JpaRepository<Achat, Integer> {
-    @Query("SELECT a FROM Achat a JOIN FETCH a.user")
+    @Query("SELECT a FROM Achat a LEFT JOIN FETCH a.user")
     List<Achat> findAllWithUser();
 }

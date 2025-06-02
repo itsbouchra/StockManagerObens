@@ -5,101 +5,159 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-// import { Ionicons } from '@expo/vector-icons'; // ou 'react-native-vector-icons/Ionicons'
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
-const AddOrderScreen = ({ navigation }) => {
-  // Données fournisseurs, catégories, produits
-  const [fournisseurs, setFournisseurs] = useState([]);
-  const [loadingFournisseurs, setLoadingFournisseurs] = useState(true);
-  const [categories, setCategories] = useState([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-  const [produits, setProduits] = useState([]);
+const EditAchatScreen = ({ route, navigation }) => {
+  const { idAchat } = route.params;
 
-  // Sélections
+  const [fournisseurs, setFournisseurs] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [produits, setProduits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Champs de l'achat
   const [fournisseurSelected, setFournisseurSelected] = useState(null);
-  const [categorieSelected, setCategorieSelected] = useState(null);
-  const [produitSelected, setProduitSelected] = useState("");
   const [date, setDate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [pickerKey, setPickerKey] = useState(0);
-
-  // Liste des lignes produits ajoutées
+  const [categorieSelected, setCategorieSelected] = useState(null);
+  const [produitSelected, setProduitSelected] = useState('');
   const [lignes, setLignes] = useState([]);
 
-  // Fetch fournisseurs
+  // Fetch initial data
   useEffect(() => {
-    let isMounted = true;
-    setLoadingFournisseurs(true);
-    fetch(`${API_BASE_URL}/api/users`)
-      .then(res => res.json())
-      .then(data => {
-        if (!isMounted) return;
-        const fournisseurs = Array.isArray(data)
-          ? data.filter(u => u.role === 'fournisseur')
-          : [];
-        setFournisseurs(fournisseurs);
-      })
-      .catch((err) => {
-        Toast.show({ type: 'error', text1: 'Erreur chargement fournisseurs', text2: err.message });
-      })
-      .finally(() => {
-        if (isMounted) setLoadingFournisseurs(false);
-      });
-    return () => { isMounted = false; };
-  }, []);
+    const fetchData = async () => {
+      try {
+        // Fetch fournisseurs
+        const fournisseursRes = await fetch(`${API_BASE_URL}/api/users`);
+        const fournisseursData = await fournisseursRes.json();
+        setFournisseurs(fournisseursData.filter(u => u.role === 'fournisseur'));
 
-  // Fetch catégories
-  useEffect(() => {
-    setLoadingCategories(true);
-    fetch(`${API_BASE_URL}/categories/all`)
-      .then(res => res.json())
-      .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement catégories' }))
-      .finally(() => setLoadingCategories(false));
-  }, []);
+        // Fetch catégories
+        const categoriesRes = await fetch(`${API_BASE_URL}/categories/all`);
+        setCategories(await categoriesRes.json());
 
-  // Quand catégorie change, fetch produits associés
+        // Fetch achat à éditer
+        const achatRes = await fetch(`${API_BASE_URL}/api/achats/${idAchat}`);
+        const achatData = await achatRes.json();
+        setFournisseurSelected(achatData.idFournisseur);
+        setDate(achatData.dateAchat);
+        setLignes(
+          achatData.lignes?.map(l => ({
+            ...l,
+            quantite: l.quantite.toString(),
+            prix: l.prix.toString(),
+            total: l.total,
+            produit: l.produit, // optionnel selon ton backend
+            key: `${l.idProduit}_${Date.now()}_${Math.random()}`,
+          })) || []
+        );
+        // Optionnel : setCategorieSelected selon ton modèle
+      } catch (err) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur chargement',
+          text2: err.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [idAchat]);
+
+  // Fetch produits selon catégorie
   useEffect(() => {
     if (!categorieSelected) {
       setProduits([]);
-      setProduitSelected(null);
+      setProduitSelected('');
       return;
     }
     fetch(`${API_BASE_URL}/produits/byCategorie/${categorieSelected}`)
       .then(res => res.json())
-      .then(data => setProduits(Array.isArray(data) ? data : []))
-      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement produits' }));
+      .then(data => setProduits(Array.isArray(data) ? data : []));
   }, [categorieSelected]);
 
-  // Total général
   const totalGeneral = lignes.reduce((sum, l) => sum + (Number(l.total) || 0), 0);
+
+  const handleUpdateAchat = async () => {
+    if (!fournisseurSelected || !date || lignes.length === 0) {
+      return Toast.show({
+        type: 'error',
+        text1: 'Tous les champs sont obligatoires',
+        position: 'top',
+      });
+    }
+    setSaving(true);
+    try {
+      const achat = {
+        idAchat,
+        dateAchat: date,
+        idFournisseur: fournisseurSelected,
+        montantTotal: totalGeneral,
+        lignes: lignes.map(l => ({
+          idProduit: l.produit?.id_produit || l.idProduit,
+          quantite: Number(l.quantite),
+          prix: Number(l.prix),
+          total: Number(l.total),
+        })),
+      };
+      const res = await fetch(`${API_BASE_URL}/api/achats/${idAchat}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(achat),
+      });
+      if (!res.ok) throw new Error('Erreur serveur');
+      Toast.show({
+        type: 'success',
+        text1: 'Achat modifié avec succès',
+        position: 'top',
+      });
+      setTimeout(() => navigation.navigate('BuysScreen', { refresh: Date.now() }), 1200);
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: err.message,
+        position: 'top',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#00cc99" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Achats"
+        title="Modifier Achat"
         onGoBack={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
-        <Text style={styles.pageTitle}>Ajouter Achat</Text>
+        <Text style={styles.pageTitle}>Modifier Achat</Text>
 
         {/* Fournisseur */}
         <Text style={styles.label}>Fournisseur *</Text>
         <View style={styles.dropdown}>
           <Picker
             selectedValue={fournisseurSelected}
-            onValueChange={itemValue => setFournisseurSelected(itemValue)}
-            enabled={!loadingFournisseurs && fournisseurs.length > 0}
+            onValueChange={setFournisseurSelected}
           >
             <Picker.Item label="Sélectionnez un fournisseur" value={undefined} />
             {fournisseurs.map(f => (
@@ -127,7 +185,6 @@ const AddOrderScreen = ({ navigation }) => {
             onChange={(event, selectedDate) => {
               setShowDatePicker(false);
               if (selectedDate) {
-                // Format YYYY-MM-DD
                 const y = selectedDate.getFullYear();
                 const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
                 const d = String(selectedDate.getDate()).padStart(2, '0');
@@ -144,10 +201,8 @@ const AddOrderScreen = ({ navigation }) => {
             selectedValue={categorieSelected}
             onValueChange={itemValue => {
               setCategorieSelected(itemValue);
-              setProduitSelected(null);
-              // Do NOT clear lignes here!
+              setProduitSelected('');
             }}
-            enabled={!loadingCategories && categories.length > 0}
           >
             <Picker.Item label="Sélectionnez une catégorie" value={null} />
             {categories.map(c => (
@@ -161,14 +216,13 @@ const AddOrderScreen = ({ navigation }) => {
         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
           <View style={[styles.dropdown, { flex: 1, marginBottom: 0 }]}>
             <Picker
-              key={pickerKey}
               selectedValue={produitSelected}
-              onValueChange={itemValue => setProduitSelected(itemValue)}
+              onValueChange={setProduitSelected}
               enabled={produits.length > 0}
             >
               <Picker.Item label="Sélectionnez un produit" value="" />
-              {Array.isArray(produits) && produits.map(p => (
-                <Picker.Item key={p.id} label={p.nom} value={String(p.id)} />
+              {produits.map(p => (
+                <Picker.Item key={p.id_produit} label={p.nom} value={String(p.id_produit)} />
               ))}
             </Picker>
           </View>
@@ -176,21 +230,21 @@ const AddOrderScreen = ({ navigation }) => {
             onPress={() => {
               if (
                 produitSelected !== "" &&
-                produits.some(p => String(p.id) === produitSelected)
+                produits.some(p => String(p.id_produit) === produitSelected)
               ) {
-                const produit = produits.find(p => String(p.id) === produitSelected);
+                const produit = produits.find(p => String(p.id_produit) === produitSelected);
                 setLignes([
                   ...lignes,
                   {
-                    produit,
-                    quantite: '',
-                    prix: produit?.prix?.toString() || '',
-                    total: 0,
                     key: `${produit.id}_${Date.now()}_${Math.random()}`,
+                    idProduit: produit.id,
+                    quantite: '',
+                    prix: produit.prix?.toString() || '',
+                    total: 0,
+                    nomProduit: produit.nom // pour affichage
                   },
                 ]);
-                setProduitSelected(""); // Reset selection
-                setPickerKey(prev => prev + 1); // Force Picker to reset
+                setProduitSelected('');
               } else {
                 Toast.show({ type: 'error', text1: 'Sélectionnez un produit' });
               }
@@ -204,10 +258,8 @@ const AddOrderScreen = ({ navigation }) => {
         {/* Liste des lignes produits */}
         {lignes.map((ligne, idx) => (
           <View key={ligne.key} style={styles.ligneContainer}>
-            {/* Affiche le nom du produit sélectionné */}
-            {console.log('ligne.produit:', ligne.produit)}
-            <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#166534', marginBottom: 8, marginLeft: 2 }}>
-              {ligne.produit.nom}
+            <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#166534', marginBottom: 8 }}>
+              {ligne.nomProduit}
             </Text>
             <View style={styles.row}>
               <TextInput
@@ -254,56 +306,25 @@ const AddOrderScreen = ({ navigation }) => {
           Total Général: {totalGeneral.toFixed(2)} DH
         </Text>
 
-        {/* Ajouter button at bottom right */}
-        <View style={{ position: 'absolute', bottom: 24, right: 24, zIndex: 10 }}>
+        {/* Boutons */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 24 }}>
           <TouchableOpacity
-            style={{
-              backgroundColor: '#166534',
-              paddingVertical: 16,
-              paddingHorizontal: 32,
-              borderRadius: 32,
-              elevation: 4,
-            }}
-            onPress={async () => {
-              if (!fournisseurSelected || !date || lignes.length === 0) return;
-
-              try {
-                const achat = {
-                  dateAchat: date,
-                  idFournisseur: fournisseurSelected,
-                  statut: "", // vide pour le moment
-                  montantTotal: totalGeneral,
-                  lignes: lignes.map(l => ({
-                    idProduit: l.produit.id, // ← c'est 'id' dans ton modèle Java
-                    quantite: Number(l.quantite),
-                    prix: Number(l.prix),
-                    total: Number(l.total),
-                  })),
-                };
-
-                const res = await fetch(`${API_BASE_URL}/api/achats`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(achat),
-                });
-
-                if (res.ok) {
-                  Toast.show({ type: 'success', text1: 'Commande ajoutée !' });
-                  navigation.navigate('BuysScreen'); // Retour à la liste des achats
-                } else {
-                  Toast.show({ type: 'error', text1: 'Erreur lors de l\'ajout' });
-                }
-              } catch (e) {
-                Toast.show({ type: 'error', text1: 'Erreur réseau', text2: e.message });
-              }
-            }}
-            disabled={lignes.length === 0 || !fournisseurSelected || !date}
+            onPress={() => navigation.goBack()}
+            style={[styles.btn, { backgroundColor: '#9ca3af' }]}
+            disabled={saving}
           >
-            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 18 }}>Ajouter</Text>
+            <Text style={styles.btnText}>Annuler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleUpdateAchat}
+            style={[styles.btn, { backgroundColor: '#16a34a' }]}
+            disabled={saving}
+          >
+            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.btnText}>Mettre à jour</Text>}
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <BottomNavBar navigation={navigation} currentRoute="BuysScreen"  />
+      <BottomNavBar navigation={navigation} currentRoute="BuysScreen" />
       <Toast />
     </View>
   );
@@ -311,17 +332,18 @@ const AddOrderScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   pageTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#4A444A',
     marginBottom: 16,
-    alignSelf: 'center',
+    color: '#1f2937',
+    textAlign: 'center',
   },
   label: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: '#166534',
+    color: '#374151',
     marginBottom: 6,
+    marginTop: 12,
   },
   dropdown: {
     backgroundColor: '#fff',
@@ -330,14 +352,6 @@ const styles = StyleSheet.create({
     borderColor: '#CAD7C5',
     marginBottom: 16,
     maxHeight: 150,
-  },
-  dropdownItem: {
-    padding: 12,
-    borderBottomWidth: 1,
-    borderColor: '#CAD7C5',
-  },
-  dropdownItemSelected: {
-    backgroundColor: '#98BB89',
   },
   input: {
     backgroundColor: '#CAD7C5',
@@ -357,19 +371,19 @@ const styles = StyleSheet.create({
   },
   addButtonYellow: {
     backgroundColor: '#FFE066',
-    paddingVertical: 9, // plus petit
-    paddingHorizontal: 12, // plus petit
-    borderRadius: 16, // plus petit
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 16,
     alignItems: 'center',
-    marginBottom: 8, // plus petit
+    marginBottom: 8,
     flexDirection: 'row',
     justifyContent: 'center',
-    alignSelf: 'flex-end', // bouton à droite
+    alignSelf: 'flex-end',
   },
   addButtonYellowText: {
     color: '#4A444A',
     fontWeight: '700',
-    fontSize: 13, // plus petit
+    fontSize: 13,
   },
   ligneContainer: {
     backgroundColor: '#fff',
@@ -403,20 +417,24 @@ const styles = StyleSheet.create({
     fontSize: 22,
     marginTop: -2,
   },
-  topBar: {
-    height: 56,
-    flexDirection: 'row',
+  btn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    elevation: 4,
+    marginHorizontal: 6,
   },
-  topBarTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4A444A',
+  btnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
 });
 
-export default AddOrderScreen;
+export default EditAchatScreen;
