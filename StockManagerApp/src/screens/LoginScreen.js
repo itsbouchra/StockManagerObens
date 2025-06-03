@@ -39,23 +39,52 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
-  try {
-    const response = await fetch('http://10.0.2.2:8080/api/users/login', { // <-- ici
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    if (response.ok) {
-      const user = await response.json();
-      Alert.alert('Success', `Welcome ${user.username}!`);
-      navigation.navigate('Dashboard');
-    } else {
-      Alert.alert('Error', 'Invalid credentials');
+    try {
+      const response = await fetch('http://10.0.2.2:8080/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+
+        Toast.show({
+          type: 'success',
+          text1: 'Connexion réussie',
+          text2: `Bienvenue ${user.username} !`,
+          position: 'top',
+        });
+
+        if (remember) {
+          await AsyncStorage.setItem('rememberedUsername', username);
+          await AsyncStorage.setItem('rememberedPassword', password);
+          await AsyncStorage.setItem('rememberMe', 'true');
+        } else {
+          await AsyncStorage.removeItem('rememberedUsername');
+          await AsyncStorage.removeItem('rememberedPassword');
+          await AsyncStorage.setItem('rememberMe', 'false');
+        }
+
+        setTimeout(() => navigation.navigate('Dashboard'), 1000);
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur de connexion',
+          text2: 'Identifiants incorrects',
+          position: 'top',
+        });
+        setPassword('');
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur serveur',
+        text2: 'Connexion impossible au serveur',
+        position: 'top',
+      });
     }
-  } catch (error) {
-    Alert.alert('Error', 'Failed to connect to server');
-  }
-};
+  };
 
   return (
     <View style={styles.container}>
@@ -108,8 +137,6 @@ export default function LoginScreen() {
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginText}>Connexion</Text>
         </TouchableOpacity>
-
-        
       </View>
     </View>
   );
@@ -197,15 +224,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
-  },
-  signupText: {
-    textAlign: 'center',
-    color: '#6b6b6b',
-    marginTop: 20,
-  },
-  signupLink: {
-    color: '#6b8e23',
-    fontWeight: '600',
-    textDecorationLine: 'underline',
   },
 });
