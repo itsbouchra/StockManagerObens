@@ -1,8 +1,8 @@
-
 package com.stock.stockmanager.model;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.CascadeType;
@@ -53,22 +53,21 @@ public class Categorie {
 
     public Categorie() {}
 
-
-
     @OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL)
-private List<Produit> produits;
+    @JsonIgnore // Ajoute cette annotation
+    private List<Produit> produits;
 
 
-public Categorie(String nom, String description) {
-    this.nom = nom;
-    this.description = description;
-}
+    public Categorie(String nom, String description) {
+        this.nom = nom;
+        this.description = description;
+    }
 
 
-@Override
-public String toString() {
-    return "Categorie{id=" + id_categorie + ", nom='" + nom + "', description='" + description + "'}";
-}
+    @Override
+    public String toString() {
+        return "Categorie{id=" + id_categorie + ", nom='" + nom + "', description='" + description + "'}";
+    }
 
     public List<Produit> getProduits() {
         return produits;

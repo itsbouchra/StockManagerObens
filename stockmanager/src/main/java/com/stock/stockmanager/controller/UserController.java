@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.stock.stockmanager.dto.LoginRequest;
+import com.stock.stockmanager.dto.UserDTO;
 import com.stock.stockmanager.model.User;
 import com.stock.stockmanager.repository.UserRepository;
 import com.stock.stockmanager.response.UserResponse;
@@ -34,13 +36,48 @@ public class UserController {
 
 
     @GetMapping
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream().map(user -> {
+            UserDTO dto = new UserDTO();
+            dto.setId_user(user.getId_user());
+            dto.setUsername(user.getUsername());
+            dto.setRole(user.getRole());
+            return dto;
+        }).toList();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginData) {
+        Optional<User> userOpt = userRepository.findByUsernameAndPassword(
+            loginData.getUsername(),
+            loginData.getPassword()
+        );
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            UserDTO dto = new UserDTO();
+            dto.setId_user(user.getId_user());
+            dto.setUsername(user.getUsername());
+            dto.setRole(user.getRole());
+            return ResponseEntity.ok(dto);
+        } else {
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
     }
 
     @GetMapping("/{id}")
-    public Optional<User> getUserById(@PathVariable int id) {
-        return userRepository.findById(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable int id) {
+        Optional<User> userOpt = userRepository.findById(id);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            UserDTO dto = new UserDTO();
+            dto.setId_user(user.getId_user());
+            dto.setUsername(user.getUsername());
+            dto.setRole(user.getRole());
+            return ResponseEntity.ok(dto);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @PostMapping

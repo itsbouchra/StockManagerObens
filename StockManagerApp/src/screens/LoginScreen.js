@@ -39,50 +39,23 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
-    try {
-      const response = await fetch('http://10.0.2.2:8080/api/users');
-      const users = await response.json();
-
-      const foundUser = users.find(
-        (user) => user.username === username && user.password === password
-      );
-
-      if (foundUser) {
-        Toast.show({
-          type: 'success',
-          text1: 'Login Successful',
-          text2: `Welcome ${foundUser.username}!`,
-          position: 'top',
-        });
-
-        if (remember) {
-          await AsyncStorage.setItem('rememberedUsername', username);
-          await AsyncStorage.setItem('rememberedPassword', password);
-          await AsyncStorage.setItem('rememberMe', 'true');
-        } else {
-          await AsyncStorage.removeItem('rememberedUsername');
-          await AsyncStorage.removeItem('rememberedPassword');
-          await AsyncStorage.setItem('rememberMe', 'false');
-        }
-
-        navigation.navigate('Dashboard');
-      } else {
-        Toast.show({
-          type: 'error',
-          text1: 'Login Failed',
-          text2: 'Invalid username or password',
-          position: 'top',
-        });
-      }
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: 'Server Error',
-        text2: 'Failed to connect to the server',
-        position: 'top',
-      });
+  try {
+    const response = await fetch('http://10.0.2.2:8080/api/users/login', { // <-- ici
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (response.ok) {
+      const user = await response.json();
+      Alert.alert('Success', `Welcome ${user.username}!`);
+      navigation.navigate('Dashboard');
+    } else {
+      Alert.alert('Error', 'Invalid credentials');
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', 'Failed to connect to server');
+  }
+};
 
   return (
     <View style={styles.container}>
