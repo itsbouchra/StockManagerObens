@@ -75,39 +75,39 @@ export default function PasswordScreen({ navigation }) {
 
         <View style={styles.titleWrapper}>
           <Lock size={18} color="#1e1e1e" />
-          <Text style={styles.title}>Password</Text>
+          <Text style={styles.title}>Mot de passe</Text>
         </View>
 
         <InputField
-          label="Current Password"
+          label="Mot de passe actuel"
           value={currentPassword}
           onChange={setCurrentPassword}
           secure={!showPassword.current}
           toggle={() => togglePassword('current')}
         />
         <InputField
-          label="New Password"
+          label="Nouveau mot de passe"
           value={newPassword}
           onChange={setNewPassword}
-          placeholder="Type your new password"
+          placeholder="Tapez votre nouveau mot de passe"
           secure={!showPassword.new}
           toggle={() => togglePassword('new')}
         />
         <InputField
-          label="Confirm New Password"
+          label="Confirmer le nouveau mot de passe"
           value={confirmPassword}
           onChange={setConfirmPassword}
-          placeholder="Confirm your new password"
+          placeholder="Confirmez votre nouveau mot de passe"
           secure={!showPassword.confirm}
           toggle={() => togglePassword('confirm')}
         />
 
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={styles.cancelText}>Annuler</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitText}>Submit</Text>
+            <Text style={styles.submitText}>Valider</Text>
           </TouchableOpacity>
         </View>
       </View>

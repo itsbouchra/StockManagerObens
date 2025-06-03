@@ -24,19 +24,18 @@ import bgImage from '../assets/bg.jpg';
 import profilePic from '../assets/profile-placeholder.jpg';
 import BottomNavBar from '../components/BottomNavBar';
 import { useNavigation, useRoute } from '@react-navigation/native';
+
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  
   const route = useRoute(); 
-  
-  
-  const [imageUri, setImageUri] = useState(null);
-   const [userData, setUserData] = useState({
-  username: 'Achraf ELMOUDEN',
-  role: 'Admin',
-});
 
-   useEffect(() => {
+  const [imageUri, setImageUri] = useState(null);
+  const [userData, setUserData] = useState({
+    username: 'Achraf ELMOUDEN',
+    role: 'Admin',
+  });
+
+  useEffect(() => {
     if (route.params?.updatedData) {
       setUserData(route.params.updatedData);
     }
@@ -50,7 +49,7 @@ export default function ProfileScreen() {
           PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES || PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
           {
             title: 'Accès à la galerie',
-            message: 'L\'application a besoin d\'accéder à votre galerie.',
+            message: "L'application a besoin d'accéder à votre galerie.",
             buttonPositive: 'OK',
             buttonNegative: 'Annuler',
           }
@@ -96,7 +95,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
         <View style={styles.titleBadge}>
           <User size={20} color="#4e5e30" />
-          <Text style={styles.pageTitle}>My Profile</Text>
+          <Text style={styles.pageTitle}>Mon Profil</Text>
         </View>
       </View>
 
@@ -111,30 +110,37 @@ export default function ProfileScreen() {
               <Camera size={14} color="#fff" />
             </TouchableOpacity>
           </View>
-         {/* ✅ Affichage dynamique des données */}
+          {/* ✅ Affichage dynamique des données */}
           <Text style={styles.username}>{userData.username}</Text>
           <Text style={styles.role}>{userData.role}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.options}>
           <OptionButton
-  label="Account Information"
-  icon={<User size={18} color="#4e5e30" />}
-  editable
-  onPress={() => navigation.navigate('AccountInfo', { userData })}
-/>
+            label="Informations du compte"
+            icon={<User size={18} color="#4e5e30" />}
+            editable
+            onPress={() => navigation.navigate('AccountInfo', { userData })}
+          />
 
-          <OptionButton label="Settings" icon={<Settings size={18} color="#4e5e30" />}
-          editable
-  onPress={() => navigation.navigate('Settings')} />
           <OptionButton
-  label="Password"
-  icon={<Lock size={18} color="#4e5e30" />}
-  editable
-  onPress={() => navigation.navigate('Password')}
-/>
+            label="Paramètres"
+            icon={<Settings size={18} color="#4e5e30" />}
+            editable
+            onPress={() => navigation.navigate('Settings')}
+          />
+          <OptionButton
+            label="Mot de passe"
+            icon={<Lock size={18} color="#4e5e30" />}
+            editable
+            onPress={() => navigation.navigate('Password')}
+          />
 
-          <OptionButton label="Log Out" icon={<LogOut size={18} color="#4e5e30" />} onPress={() => navigation.navigate('Login')} />
+          <OptionButton
+            label="Déconnexion"
+            icon={<LogOut size={18} color="#4e5e30" />}
+            onPress={() => navigation.navigate('Login')}
+          />
         </ScrollView>
       </View>
 

@@ -1,4 +1,4 @@
- import React, { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -24,33 +24,33 @@ export default function SettingsScreen({ navigation }) {
       style={styles.background}
     >
       <View style={styles.container}>
-        {/* Header */}
+        {/* En-tête */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color="#333" />
         </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <Settings size={18} color="#1e1e1e" />
-          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.title}>Paramètres</Text>
         </View>
 
-        {/* Settings Options */}
-        <TouchableOpacity style={styles.optionBox}onPress={() => navigation.navigate('UsersScreen')}>
+        {/* Options des paramètres */}
+        <TouchableOpacity style={styles.optionBox} onPress={() => navigation.navigate('UsersScreen')}>
           <View style={styles.iconText}>
             <Users size={22} color="#4e5e30" />
             <View style={{ marginLeft: 10 }}>
-              <Text style={styles.optionTitle}>Accounts</Text>
-              <Text style={styles.optionSubtitle}>Manage Accounts and Roles</Text>
+              <Text style={styles.optionTitle}>Comptes</Text>
+              <Text style={styles.optionSubtitle}>Gérer les comptes et les rôles</Text>
             </View>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.optionBox}>
+        <TouchableOpacity style={styles.optionBox} onPress={() => navigation.navigate('SettingsCategorieScreen')}>
           <View style={styles.iconText}>
             <Blocks size={22} color="#4e5e30" />
             <View style={{ marginLeft: 10 }}>
-              <Text style={styles.optionTitle}>Categories</Text>
-              <Text style={styles.optionSubtitle}>Manage and Add Categories</Text>
+              <Text style={styles.optionTitle}>Catégories</Text>
+              <Text style={styles.optionSubtitle}>Gérer et ajouter des catégories</Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -70,7 +70,9 @@ export default function SettingsScreen({ navigation }) {
       </View>
     </ImageBackground>
   );
-}const styles = StyleSheet.create({
+}
+
+const styles = StyleSheet.create({
   background: {
     flex: 1,
     resizeMode: 'cover',

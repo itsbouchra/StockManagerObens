@@ -13,22 +13,16 @@ import ProductsAdmin from '../screens/ProductsAdmin';
 import AddProductScreen from '../screens/AddProductScreen';
 import ProductDetailScreen from '../screens/ProductDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-
 import EditProductScreen from '../screens/EditProductScreen';
 import AccountInformationScreen from '../screens/AccountInformationScreen';
 import PasswordScreen from '../screens/PasswordScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-
 import UsersScreen from '../screens/UsersScreen';
 import AddUserScreen from '../screens/AddUserScreen';
+import UserInformationScreen from '../screens/UserInformationScreen';
+import SettingsCategorieScreen from '../screens/SettingsCategorieScreen';
+import AddCategorieScreen from '../screens/AddCategorieScreen';
 
-
-
-import AccountInformationScreen from '../screens/AccountInformationScreen';
-import PasswordScreen from '../screens/PasswordScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import AddUserScreen from '../screens/AddUserScreen';
-import UsersScreen from '../screens/UsersScreen';
 
 
 const Stack = createNativeStackNavigator();
@@ -44,7 +38,6 @@ const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Welcome">
-
         <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{
           title: '',
@@ -66,88 +59,18 @@ const AppNavigator = () => {
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AddUserScreen" component={AddUserScreen} options={{ headerShown: false }} />
         <Stack.Screen name="UsersScreen" component={UsersScreen} options={{ headerShown: false }} />
-=======
         <Stack.Screen
-          name="Welcome"
-          component={WelcomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{
-            title: '',
-            headerTransparent: true,
-            headerBackTitleVisible: false,
-            headerTintColor: '#fff',
-          }}
-        />
-        <Stack.Screen
-          name="Dashboard"
-          component={DashboardWithNavbar}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Categorie"
-          component={CategorieScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProduitScreen"
-          component={ProduitScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProductAD"
-          component={ProductAD}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProductsAdmin"
-          component={ProductsAdmin}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AddProductScreen"
-          component={AddProductScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ProductDetailScreen"
-          component={ProductDetailScreen}
-          options={{ headerShown: false }}
-        />
-        
-        <Stack.Screen
-          name="Profile"
-          component={ProfileScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AccountInfo"
-          component={AccountInformationScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Password"
-          component={PasswordScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Settings"
-          component={SettingsScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="AddUserScreen"
-          component={AddUserScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="UsersScreen"
-          component={UsersScreen}
-          options={{ headerShown: false }}
-        />
+  name="UserInfo"
+  component={UserInformationScreen}
+  options={{ headerShown: false }}
+/>
+<Stack.Screen name="SettingsCategorieScreen" component={SettingsCategorieScreen}options={{ headerShown: false }}  />
+<Stack.Screen
+  name="AddCategorieScreen"
+  component={AddCategorieScreen}
+  options={{ headerShown: false }}
+/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );

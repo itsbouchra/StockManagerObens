@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
   Settings,
   Bell,
 } from 'lucide-react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import BottomNavBar from '../components/BottomNavBar';
 
 export default function UsersScreen({ navigation }) {
@@ -23,12 +24,21 @@ export default function UsersScreen({ navigation }) {
   const [selectedRole, setSelectedRole] = useState('all');
   const API_BASE = 'http://10.0.2.2:8080/api/users';
 
-  useEffect(() => {
-    fetch(API_BASE)
-      .then(res => res.json())
-      .then(data => setUsers(data))
-      .catch(err => console.error('Erreur de chargement des utilisateurs', err));
-  }, []);
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch(API_BASE);
+      const data = await res.json();
+      setUsers(data);
+    } catch (err) {
+      console.error('Erreur de chargement des utilisateurs', err);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers();
+    }, [])
+  );
 
   const filteredUsers = users.filter(user => {
     const matchRole = selectedRole === 'all' || user.role === selectedRole;
@@ -37,54 +47,52 @@ export default function UsersScreen({ navigation }) {
   });
 
   const renderUser = ({ item }) => (
-    <View style={styles.userItem}>
-      <Image
-        source={require('../assets/sophie.jpg')}
-        style={styles.avatar}
-      />
+    <TouchableOpacity
+      style={styles.userItem}
+      onPress={() => navigation.navigate('UserInfo', { user: item })}
+    >
+      <Image source={require('../assets/sophie.jpg')} style={styles.avatar} />
       <View style={styles.info}>
         <Text style={styles.name}>{item.username}</Text>
         <Text style={styles.phone}>{item.telephone}</Text>
       </View>
-      <TouchableOpacity>
-        <Text style={styles.options}>⋮</Text>
-      </TouchableOpacity>
-    </View>
+      
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* En-tête */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
             <ArrowLeft size={22} color="#fff" />
           </TouchableOpacity>
           <Settings size={25} color="#f5c518" />
-          <Text style={styles.headerTitle}>Settings</Text>
+          <Text style={styles.headerTitle}>Paramètres</Text>
         </View>
         <TouchableOpacity>
           <Bell size={20} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.title}>Users</Text>
+      <Text style={styles.title}>Utilisateurs</Text>
 
-      {/* Search */}
+      {/* Recherche */}
       <View style={styles.searchBox}>
         <Search size={18} color="#888" />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search"
+          placeholder="Rechercher"
           placeholderTextColor="#999"
           value={searchTerm}
           onChangeText={setSearchTerm}
         />
       </View>
 
-      {/* Role Filter Buttons */}
+      {/* Boutons de filtre par rôle */}
       <View style={styles.filterButtons}>
-        {['admin', 'fournisseur', 'client'].map(role => (
+        {['all', 'admin', 'fournisseur', 'client'].map(role => (
           <TouchableOpacity
             key={role}
             style={[
@@ -94,13 +102,17 @@ export default function UsersScreen({ navigation }) {
             onPress={() => setSelectedRole(role)}
           >
             <Text style={styles.filterBtnText}>
-              {role === 'fournisseur' ? 'Supplier' : role.charAt(0).toUpperCase() + role.slice(1)}
+              {role === 'all'
+                ? 'Tous'
+                : role === 'fournisseur'
+                ? 'Fournisseur'
+                : role.charAt(0).toUpperCase() + role.slice(1)}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* Users List */}
+      {/* Liste des utilisateurs */}
       <FlatList
         data={filteredUsers}
         keyExtractor={(item) => item.id_user.toString()}
@@ -108,12 +120,15 @@ export default function UsersScreen({ navigation }) {
         contentContainerStyle={{ paddingBottom: 120 }}
       />
 
-      {/* Add Button */}
+      {/* Bouton Ajouter */}
       <View style={styles.bottomSection}>
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('AddUserScreen')}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('AddUserScreen')}
+          >
             <Plus size={16} color="#333" />
-            <Text style={styles.btnText}>Add</Text>
+            <Text style={styles.btnText}>Ajouter</Text>
           </TouchableOpacity>
         </View>
         <BottomNavBar navigation={navigation} currentRoute="Users" />

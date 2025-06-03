@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import {
   View,
   Text,
@@ -11,66 +10,62 @@ import {
 import { ArrowLeft, PencilLine, User } from 'lucide-react-native';
 
 export default function AccountInformationScreen({ navigation, route }) {
-  // 1. données initiales de route (passées depuis ProfileScreen)
-  const initialData = route.params?.userData || {
+  const utilisateurParDefaut = {
     username: 'Achraf EL MOUDEN',
     email: 'achrafelmouden@gmail.com',
     phone: '06 44 55 66 77 88',
     role: 'Admin',
   };
 
-  const [form, setForm] = useState(initialData);
+  const donneesInitiales = { ...utilisateurParDefaut, ...(route.params?.userData || {}) };
+  const [formulaire, setFormulaire] = useState(donneesInitiales);
+  const [formulaireOriginal, setFormulaireOriginal] = useState(donneesInitiales);
 
-   const [originalForm, setOriginalForm] = useState(initialData);
-   useEffect(() => {
-    setOriginalForm(initialData); // Sauvegarde initiale
+  useEffect(() => {
+    setFormulaireOriginal(donneesInitiales);
   }, []);
 
-  const handleChange = (key, value) => {
-    setForm({ ...form, [key]: value });
-  };
-   const handleSubmit = () => {
-    console.log('Données soumises :', form);
-    // navigation vers le profil avec les nouvelles données
-    navigation.navigate('Profile', { updatedData: form });
+  const champs = [
+    { label: "Nom d'utilisateur", key: 'username' },
+    { label: 'Gmail', key: 'email' },
+    { label: 'Téléphone', key: 'phone' },
+    { label: 'Rôle', key: 'role' },
+  ];
+
+  const gererChangement = (cle, valeur) => {
+    setFormulaire({ ...formulaire, [cle]: valeur });
   };
 
-  const handleCancel = () => {
-    setForm(originalForm); // Rétablir les valeurs initiales
+  const gererValidation = () => {
+    console.log('Données soumises :', formulaire);
+    navigation.navigate('Profile', { updatedData: formulaire });
+  };
+
+  const gererAnnulation = () => {
+    setFormulaire(formulaireOriginal);
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/bg.jpg')} // remplace ce chemin par celui de ton image
-      style={styles.background}
-    >
+    <ImageBackground source={require('../assets/bg.jpg')} style={styles.background}>
       <View style={styles.container}>
         {/* Header */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color="#333" />
         </TouchableOpacity>
 
         <View style={styles.titleWrapper}>
           <User size={18} color="#1e1e1e" />
-          <Text style={styles.title}>Account Information</Text>
+          <Text style={styles.title}>Informations du compte</Text>
         </View>
 
         {/* Form fields */}
-        {[
-          { label: 'Username', key: 'username' },
-          { label: 'Gmail', key: 'email' },
-          { label: 'Telephone', key: 'phone' },
-          { label: 'Role', key: 'role' },
-        ].map(({ label, key }) => (
+        {champs.map(({ label, key }) => (
           <View key={key} style={styles.inputRow}>
             <Text style={styles.label}>{label} :</Text>
             <View style={styles.inputWrapper}>
               <TextInput
-                value={form[key]}
-                onChangeText={(val) => handleChange(key, val)}
+                value={formulaire[key]}
+                onChangeText={(val) => gererChangement(key, val)}
                 style={styles.input}
                 placeholder={label}
                 placeholderTextColor="#999"
@@ -82,18 +77,18 @@ export default function AccountInformationScreen({ navigation, route }) {
 
         {/* Buttons */}
         <View style={styles.buttonRow}>
-         <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-  <Text style={styles.cancelText}>Cancel</Text>
-</TouchableOpacity>
-<TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-  <Text style={styles.submitText}>Submit</Text>
-</TouchableOpacity>
-
+          <TouchableOpacity style={styles.cancelButton} onPress={gererAnnulation}>
+            <Text style={styles.cancelText}>Annuler</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.submitButton} onPress={gererValidation}>
+            <Text style={styles.submitText}>Valider</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ImageBackground>
   );
 }
+
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -156,7 +151,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#d9e3d2',
+    backgroundColor: '#FFF4B1', // ✅ Jaune clair
     padding: 12,
     marginRight: 10,
     borderRadius: 10,
@@ -164,7 +159,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
-    backgroundColor: '#d9e3d2',
+    backgroundColor: '#FFF4B1', // ✅ Jaune clair
     padding: 12,
     marginLeft: 10,
     borderRadius: 10,

@@ -39,14 +39,15 @@ export default function AddUserScreen({ navigation }) {
 
     launchImageLibrary(options, (response) => {
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        console.log('Sélection d\'image annulée');
       } else if (response.errorCode) {
-        Alert.alert('Error', response.errorMessage);
+        Alert.alert('Erreur', response.errorMessage);
       } else if (response.assets && response.assets.length > 0) {
         setImage(response.assets[0].uri);
       }
     });
   };
+
   const handleCancel = () => {
     setForm({
       username: '',
@@ -57,10 +58,10 @@ export default function AddUserScreen({ navigation }) {
     setRole('admin');
     setImage(null);
     setShowPassword(false);
-    navigation.navigate('UsersScreen'); // ← retour à UsersScreen
+    navigation.navigate('UsersScreen');
   };
 
-   const handleSave = async () => {
+  const handleSave = async () => {
     const user = {
       username: form.username,
       email: form.email,
@@ -68,7 +69,6 @@ export default function AddUserScreen({ navigation }) {
       telephone: form.phone,
       role,
     };
-   
 
     try {
       const res = await fetch('http://10.0.2.2:8080/api/users', {
@@ -92,26 +92,28 @@ export default function AddUserScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={{ flex: 1 }}>
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <ArrowLeft size={22} color="#fff" />
             </TouchableOpacity>
             <Settings size={24} color="#f5c518" />
-            <Text style={styles.headerTitle}>Settings</Text>
+            <Text style={styles.headerTitle}>Paramètres</Text>
           </View>
           <TouchableOpacity>
             <Bell size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.title}>Add User</Text>
+        <Text style={styles.title}>Ajouter un utilisateur</Text>
 
+        {/* Form */}
         <View style={styles.form}>
-          <Text style={styles.label}>Username :</Text>
+          <Text style={styles.label}>Nom d'utilisateur :</Text>
           <TextInput
             style={styles.input}
-            placeholder="type your username"
+            placeholder="Entrez le nom d'utilisateur"
             value={form.username}
             onChangeText={(text) => handleChange('username', text)}
           />
@@ -119,16 +121,16 @@ export default function AddUserScreen({ navigation }) {
           <Text style={styles.label}>Email :</Text>
           <TextInput
             style={styles.input}
-            placeholder="type your email"
+            placeholder="Entrez l'email"
             value={form.email}
             onChangeText={(text) => handleChange('email', text)}
           />
 
-          <Text style={styles.label}>Password :</Text>
+          <Text style={styles.label}>Mot de passe :</Text>
           <View style={styles.passwordWrapper}>
             <TextInput
               style={styles.passwordInput}
-              placeholder="type your password"
+              placeholder="Entrez le mot de passe"
               secureTextEntry={!showPassword}
               value={form.password}
               onChangeText={(text) => handleChange('password', text)}
@@ -138,34 +140,35 @@ export default function AddUserScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.label}>Phone :</Text>
+          <Text style={styles.label}>Téléphone :</Text>
           <TextInput
             style={styles.input}
-            placeholder="type your number"
+            placeholder="Entrez le numéro"
             keyboardType="phone-pad"
             value={form.phone}
             onChangeText={(text) => handleChange('phone', text)}
           />
 
-          <Text style={styles.label}>Role :</Text>
-          <DropDownPicker
-            open={dropdownOpen}
-            value={role}
-            items={[
-              { label: 'Admin', value: 'admin' },
-              { label: 'Supplier', value: 'supplier' },
-              { label: 'Customer', value: 'customer' },
-            ]}
-            setOpen={setDropdownOpen}
-            setValue={setRole}
-            style={styles.dropdown}
-            textStyle={styles.dropdownText}
-            dropDownContainerStyle={styles.dropdownContainer}
-            zIndex={1000}
-          />
+          <Text style={styles.label}>Rôle :</Text>
+          <View style={{ zIndex: 1000 }}>
+            <DropDownPicker
+              open={dropdownOpen}
+              value={role}
+              items={[
+                { label: 'Admin', value: 'admin' },
+                { label: 'Fournisseur', value: 'supplier' },
+                { label: 'Client', value: 'customer' },
+              ]}
+              setOpen={setDropdownOpen}
+              setValue={setRole}
+              style={styles.dropdown}
+              textStyle={styles.dropdownText}
+              dropDownContainerStyle={styles.dropdownContainer}
+            />
+          </View>
 
           <View style={styles.uploadContainer}>
-            <Text style={styles.label}>Upload Image :</Text>
+            <Text style={styles.label}>Télécharger une image :</Text>
             <TouchableOpacity style={styles.uploadBtn} onPress={handleImagePick}>
               {image ? (
                 <Image source={{ uri: image }} style={{ width: 90, height: 90, borderRadius: 10 }} />
@@ -176,16 +179,17 @@ export default function AddUserScreen({ navigation }) {
           </View>
 
           <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.cancelBtn}onPress={handleCancel}>
-              <Text style={styles.btnText}>Cancel</Text>
+            <TouchableOpacity style={styles.cancelBtn} onPress={handleCancel}>
+              <Text style={styles.btnText}>Annuler</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn}onPress={handleSave}>
-              <Text style={styles.btnText}>Save</Text>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+              <Text style={styles.btnText}>Enregistrer</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
+      {/* Bottom NavBar */}
       <View style={styles.bottomBarContainer}>
         <BottomNavBar navigation={navigation} currentRoute="AddUser" />
       </View>
@@ -219,7 +223,7 @@ const styles = StyleSheet.create({
     fontFamily: 'serif',
     color: '#222',
   },
-  form: { paddingHorizontal: 20, gap: 10, zIndex: 1 },
+  form: { paddingHorizontal: 20, gap: 10, zIndex: 0 },
   label: { fontWeight: '600', fontSize: 14, fontFamily: 'serif', color: '#222' },
   input: {
     borderWidth: 1,
@@ -253,6 +257,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderColor: '#ccc',
     borderRadius: 10,
+    marginTop: 2,
+    zIndex: 1000,
   },
   uploadContainer: {
     flexDirection: 'row',
@@ -276,7 +282,7 @@ const styles = StyleSheet.create({
   },
   cancelBtn: {
     flex: 1,
-    backgroundColor: '#eee',
+    backgroundColor: '#FFF4B1',
     padding: 12,
     borderRadius: 10,
     marginRight: 10,
@@ -284,7 +290,7 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     flex: 1,
-    backgroundColor: '#eee',
+    backgroundColor: '#FFF4B1',
     padding: 12,
     borderRadius: 10,
     marginLeft: 20,
@@ -297,10 +303,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: '#fff',
+    zIndex: 10,
     elevation: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4,
+  },
 });

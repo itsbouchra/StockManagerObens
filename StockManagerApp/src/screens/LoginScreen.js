@@ -1,30 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   Image,
-  Alert,
   StyleSheet,
-   Dimensions,
+  Dimensions,
 } from 'react-native';
 import CheckBox from '@react-native-community/checkbox';
-import { User, Lock, Eye, EyeOff} from 'lucide-react-native'; // ✅ Using Lucide icons
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
-import loginBg from '../assets/login-bk.png'; // Local image
-
-
+import loginBg from '../assets/login-bk.png';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
-    const [secure, setSecure] = useState(true);
+  const [secure, setSecure] = useState(true);
   const navigation = useNavigation();
 
+  useEffect(() => {
+    const loadCredentials = async () => {
+      const savedUsername = await AsyncStorage.getItem('rememberedUsername');
+      const savedPassword = await AsyncStorage.getItem('rememberedPassword');
+      const rememberFlag = await AsyncStorage.getItem('rememberMe');
+
+      if (rememberFlag === 'true') {
+        setUsername(savedUsername || '');
+        setPassword(savedPassword || '');
+        setRemember(true);
+      }
+    };
+
+    loadCredentials();
+  }, []);
+
   const handleLogin = async () => {
-     try {
+    try {
       const response = await fetch('http://10.0.2.2:8080/api/users');
       const users = await response.json();
 
@@ -33,21 +48,47 @@ export default function LoginScreen() {
       );
 
       if (foundUser) {
-          Alert.alert('Success', `Welcome ${foundUser.username}!`);
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful',
+          text2: `Welcome ${foundUser.username}!`,
+          position: 'top',
+        });
+
+        if (remember) {
+          await AsyncStorage.setItem('rememberedUsername', username);
+          await AsyncStorage.setItem('rememberedPassword', password);
+          await AsyncStorage.setItem('rememberMe', 'true');
+        } else {
+          await AsyncStorage.removeItem('rememberedUsername');
+          await AsyncStorage.removeItem('rememberedPassword');
+          await AsyncStorage.setItem('rememberMe', 'false');
+        }
+
         navigation.navigate('Dashboard');
       } else {
-        Alert.alert('Error', 'Invalid credentials');
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: 'Invalid username or password',
+          position: 'top',
+        });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to connect to server');
+      Toast.show({
+        type: 'error',
+        text1: 'Server Error',
+        text2: 'Failed to connect to the server',
+        position: 'top',
+      });
     }
   };
 
   return (
     <View style={styles.container}>
-        <View style={styles.imageWrapper}>
-      <Image source={loginBg} style={styles.backgroundImage} resizeMode="cover" />
-      <View style={styles.curve} />
+      <View style={styles.imageWrapper}>
+        <Image source={loginBg} style={styles.backgroundImage} resizeMode="cover" />
+        <View style={styles.curve} />
       </View>
 
       <View style={styles.header}>
@@ -78,48 +119,47 @@ export default function LoginScreen() {
             style={styles.input}
           />
           <TouchableOpacity onPress={() => setSecure(!secure)}>
-  {secure ? (
-    <EyeOff size={20} color="#3d3d3d" /> // 👁‍🗨 Masqué
-  ) : (
-    <Eye size={20} color="#3d3d3d" />    // 👁 Visible
-  )}
-</TouchableOpacity>
-
+            {secure ? (
+              <EyeOff size={20} color="#3d3d3d" />
+            ) : (
+              <Eye size={20} color="#3d3d3d" />
+            )}
+          </TouchableOpacity>
         </View>
+
         <View style={styles.checkboxContainer}>
           <CheckBox value={remember} onValueChange={setRemember} />
           <Text style={styles.checkboxLabel}>Remember me</Text>
         </View>
 
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginText}>Login</Text>
+          <Text style={styles.loginText}>Connexion</Text>
         </TouchableOpacity>
 
-        <Text style={styles.signupText}>
-          Don’t have account?{' '}
-          <Text style={styles.signupLink}>Sign up</Text>
-        </Text>
+        
       </View>
     </View>
   );
 }
+
 const windowWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
   imageWrapper: {
-    height: 260, // ✅ fixe une hauteur suffisante pour voir l’image
+    height: 260,
     position: 'relative',
     overflow: 'hidden',
   },
-    backgroundImage: {
-    position: 'absolute', // ✅ pour être derrière les éléments
+  backgroundImage: {
+    position: 'absolute',
     top: 0,
     left: 0,
     width: '100%',
-    height: 600, // même hauteur que le wrapper
+    height: 600,
     zIndex: -1,
   },
   curve: {
@@ -131,13 +171,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 100,
     borderTopRightRadius: 100,
   },
- header: {
-  alignItems: 'center',
-  marginTop: 20, // ✅ remonte dans l'image, ajuste selon visuel
-  marginBottom: 10,
- 
-},
-
+  header: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -196,5 +234,5 @@ const styles = StyleSheet.create({
     color: '#6b8e23',
     fontWeight: '600',
     textDecorationLine: 'underline',
-  },
+  },
 });
