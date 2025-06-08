@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, FlatList, Image, Dimensions } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, Image, Dimensions, TouchableOpacity } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 
@@ -58,38 +58,45 @@ const ProduitScreen = ({ route, navigation }) => {
       </Text>
 
       <FlatList
-  data={produits}
-  keyExtractor={(item) => item.id.toString()}
-  contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 16 }}
-  renderItem={({ item }) => (
-    <View style={{
-      flexDirection: 'row',
-      backgroundColor: '#e5e7eb',
-      marginBottom: 12,
-      padding: 12,
-      borderRadius: 10,
-      alignItems: 'center',
-      elevation: 2,
-    }}>
-      <Image
-        source={{
-          uri: `${API_BASE_URL}/images/${item.photo && item.photo.trim() !== '' ? item.photo : 'default.jpg'}`
-        }}
-        style={{ width: 70, height: 70, borderRadius: 8, marginRight: 16 }}
-        resizeMode="cover"
+        data={produits}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ paddingBottom: 80, paddingHorizontal: 16 }}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ProductReceptionScreen', {
+              productId: item.id,
+              productName: item.nom,
+              productPhoto: item.photo && item.photo.trim() !== '' ? item.photo : 'default.jpg'
+            })}
+          >
+            <View style={{
+              flexDirection: 'row',
+              backgroundColor: '#e5e7eb',
+              marginBottom: 12,
+              padding: 12,
+              borderRadius: 10,
+              alignItems: 'center',
+              elevation: 2,
+            }}>
+              <Image
+                source={{
+                  uri: `${API_BASE_URL}/images/${item.photo && item.photo.trim() !== '' ? item.photo : 'default.jpg'}`
+                }}
+                style={{ width: 70, height: 70, borderRadius: 8, marginRight: 16 }}
+                resizeMode="cover"
+              />
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111827' }}>
+                  {item.nom}
+                </Text>
+                <Text style={{ color: '#6b7280', fontSize: 14 }}>
+                  {item.prix} DH       
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
       />
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#111827' }}>
-          {item.nom}
-        </Text>
-        <Text style={{ color: '#6b7280', fontSize: 14 }}>
-             {item.prix} DH       
-       </Text>
-      </View>
-    </View>
-  )}
-/>
-
 
       <BottomNavBar navigation={navigation} currentRoute="ProductStock" />
     </View>

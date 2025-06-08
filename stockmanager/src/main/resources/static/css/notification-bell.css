@@ -1,0 +1,37 @@
+.notification-bell-container {
+    position: relative;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Adjust size as needed */
+    height: 40px; /* Adjust size as needed */
+    border-radius: 50%;
+    background-color: #f0f0f0; /* Light background for the bell area */
+    color: #333; /* Default icon color */
+    font-size: 1.5em; /* Size of the bell icon */
+    transition: background-color 0.3s ease;
+}
+
+.notification-bell-container:hover {
+    background-color: #e0e0e0;
+}
+
+.notification-bell-icon {
+    /* Specific styles for your bell icon if needed, e.g., FontAwesome */
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #f44336; /* Red badge */
+    color: white;
+    border-radius: 50%;
+    padding: 3px 7px;
+    font-size: 0.7em;
+    font-weight: bold;
+    min-width: 20px; /* Ensure badge is round */
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+} 

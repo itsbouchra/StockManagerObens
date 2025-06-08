@@ -48,6 +48,7 @@ export default function LoginScreen() {
 
       if (response.ok) {
         const user = await response.json();
+        console.log('Login response:', user); // Debug log
 
         Toast.show({
           type: 'success',
@@ -66,7 +67,29 @@ export default function LoginScreen() {
           await AsyncStorage.setItem('rememberMe', 'false');
         }
 
-        setTimeout(() => navigation.navigate('Dashboard'), 1000);
+        // Store user data in AsyncStorage
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+
+        // Debug logs for role check
+        console.log('User role:', user.role);
+        console.log('Is supplier?', user.role === 'fournisseur');
+
+        // Redirect based on user role
+        setTimeout(() => {
+          if (user.role === 'fournisseur') {
+            console.log('Navigating to SupplierDashboard');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'SupplierDashboard' }],
+            });
+          } else {
+            console.log('Navigating to Dashboard');
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Dashboard' }],
+            });
+          }
+        }, 1000);
       } else {
         Toast.show({
           type: 'error',
@@ -77,6 +100,7 @@ export default function LoginScreen() {
         setPassword('');
       }
     } catch (error) {
+      console.error('Login error:', error); // Debug log
       Toast.show({
         type: 'error',
         text1: 'Erreur serveur',

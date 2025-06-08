@@ -124,7 +124,11 @@ const Dashboard = ({ navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar title="Overview" active="home" />
+      <TopBar
+        title="Overview"
+        activeLeftIcon="home"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+      />
       <View
         style={{
           flexDirection: 'row',

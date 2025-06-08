@@ -53,7 +53,7 @@ public class Achat {
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
 
-public LocalDate getDateAchat() { return dateAchat; }
+    public LocalDate getDateAchat() { return dateAchat; }
     public void setDateAchat(LocalDate dateAchat) { this.dateAchat = dateAchat; }
 
     public Double getMontantTotal() { return montantTotal; }

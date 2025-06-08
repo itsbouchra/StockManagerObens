@@ -4,6 +4,8 @@ public class UserDTO {
     private int id_user;
     private String username;
     private String role;
+    private String email;
+    private String telephone;
 
     // Getters and setters
     public int getId_user() { return id_user; }
@@ -14,4 +16,10 @@ public class UserDTO {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String telephone) { this.telephone = telephone; }
 }

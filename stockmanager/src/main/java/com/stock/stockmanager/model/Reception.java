@@ -3,7 +3,7 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +18,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "reception")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Reception {
 
     @Id
@@ -25,12 +26,11 @@ public class Reception {
     @Column(name = "id_reception")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_achat")
-    @JsonIgnore // Ajoute cette ligne
     private Achat achat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_produit")
     private Produit produit;
 
@@ -38,8 +38,6 @@ public class Reception {
     private LocalDate dateReception;
 
     private Integer quantite;
-
-
 
     private String statut; // conf / semi-conf / non-conf
 

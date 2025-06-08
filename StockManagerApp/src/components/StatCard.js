@@ -5,6 +5,8 @@ import {
   AlertCircle,
   ArrowDownCircle,  
   History,
+  CheckCircle,
+  XCircle,
 } from 'lucide-react-native';
 
 const iconMap = {
@@ -12,6 +14,8 @@ const iconMap = {
   'alert-circle': AlertCircle,
   'arrow-down-circle': ArrowDownCircle,  
   history: History,
+  'check-circle': CheckCircle,
+  'x-circle': XCircle,
 };
 
 const StatCard = ({ label, value, bgColor, iconName, style }) => {

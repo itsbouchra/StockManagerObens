@@ -1,20 +1,25 @@
 package com.stock.stockmanager.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.stock.stockmanager.dto.ProduitDTO;
 import com.stock.stockmanager.dto.ReceptionDTO;
 import com.stock.stockmanager.dto.ReceptionRequest;
+import com.stock.stockmanager.dto.ReceptionResponseDTO;
 import com.stock.stockmanager.model.Achat;
+import com.stock.stockmanager.model.LigneAchat;
 import com.stock.stockmanager.model.Produit;
 import com.stock.stockmanager.model.Reception;
-import com.stock.stockmanager.model.LigneAchat;
 import com.stock.stockmanager.repository.AchatRepository;
 import com.stock.stockmanager.repository.ProduitRepository;
 import com.stock.stockmanager.repository.ReceptionRepository;
@@ -70,5 +75,81 @@ public class ReceptionController {
     @GetMapping("/receptions")
     public List<Reception> getAllReceptions() {
         return receptionRepository.findAll();
+    }
+
+    @GetMapping("/api/receptions/count")
+    public long countReceptionsByStatut(@RequestParam String statut) {
+        return receptionRepository.countByStatut(statut);
+    }
+
+    @GetMapping("/api/receptions/achat/{achatId}")
+    public ResponseEntity<?> getReceptionsByAchat(@PathVariable Integer achatId) {
+        try {
+            List<Reception> receptions = receptionRepository.findByAchatId(achatId);
+            List<ReceptionResponseDTO> responseDTOs = receptions.stream()
+                .map(reception -> {
+                    ReceptionResponseDTO dto = new ReceptionResponseDTO();
+                    dto.setId(reception.getId());
+                    dto.setAchatId(reception.getAchat().getId());
+                    dto.setDateReception(reception.getDateReception());
+                    dto.setQuantite(reception.getQuantite());
+                    dto.setStatut(reception.getStatut());
+                    dto.setRefLot(reception.getRefLot());
+                    
+                    // Map produit data
+                    Produit produit = reception.getProduit();
+                    if (produit != null) {
+                        ProduitDTO produitDTO = new ProduitDTO();
+                        produitDTO.setId(produit.getId());
+                        produitDTO.setNom(produit.getNom());
+                        produitDTO.setPhoto(produit.getPhoto());
+                        produitDTO.setUnit(produit.getUnit());
+                        dto.setProduit(produitDTO);
+                    }
+                    
+                    return dto;
+                })
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(responseDTOs);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching receptions: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/receptions/byProduct/{productId}")
+    public ResponseEntity<?> getReceptionsByProduct(@PathVariable Integer productId) {
+        try {
+            List<Reception> receptions = receptionRepository.findByProduitId(productId);
+            List<ReceptionResponseDTO> responseDTOs = receptions.stream()
+                .map(reception -> {
+                    ReceptionResponseDTO dto = new ReceptionResponseDTO();
+                    dto.setId(reception.getId());
+                    dto.setAchatId(reception.getAchat().getId());
+                    dto.setDateReception(reception.getDateReception());
+                    dto.setQuantite(reception.getQuantite());
+                    dto.setStatut(reception.getStatut());
+                    dto.setRefLot(reception.getRefLot());
+                    dto.setFournisseurNom(reception.getAchat().getUser().getUsername());
+
+                    // Map produit data
+                    Produit produit = reception.getProduit();
+                    if (produit != null) {
+                        ProduitDTO produitDTO = new ProduitDTO();
+                        produitDTO.setId(produit.getId());
+                        produitDTO.setNom(produit.getNom());
+                        produitDTO.setPhoto(produit.getPhoto());
+                        produitDTO.setUnit(produit.getUnit());
+                        dto.setProduit(produitDTO);
+                    }
+
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+            return ResponseEntity.ok(responseDTOs);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching receptions: " + e.getMessage());
+        }
     }
 }

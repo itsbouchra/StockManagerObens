@@ -7,7 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   ActivityIndicator,
-} from 'react-native';
+} from 'react-native'; 
 import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
@@ -88,6 +88,7 @@ const AddOrderScreen = ({ navigation }) => {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Achats"
+        active="BuysScreen"
         onGoBack={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>

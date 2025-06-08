@@ -43,6 +43,8 @@ public class UserController {
             dto.setId_user(user.getId_user());
             dto.setUsername(user.getUsername());
             dto.setRole(user.getRole());
+            dto.setEmail(user.getEmail());
+            dto.setTelephone(user.getTelephone());
             return dto;
         }).toList();
     }
@@ -59,6 +61,8 @@ public class UserController {
             dto.setId_user(user.getId_user());
             dto.setUsername(user.getUsername());
             dto.setRole(user.getRole());
+            dto.setEmail(user.getEmail());
+            dto.setTelephone(user.getTelephone());
             return ResponseEntity.ok(dto);
         } else {
             return ResponseEntity.status(401).body("Invalid credentials");
@@ -74,6 +78,8 @@ public class UserController {
             dto.setId_user(user.getId_user());
             dto.setUsername(user.getUsername());
             dto.setRole(user.getRole());
+            dto.setEmail(user.getEmail());
+            dto.setTelephone(user.getTelephone());
             return ResponseEntity.ok(dto);
         } else {
             return ResponseEntity.notFound().build();
