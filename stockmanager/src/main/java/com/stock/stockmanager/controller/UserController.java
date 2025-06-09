@@ -36,16 +36,20 @@ public class UserController {
 
 
     @GetMapping
-    public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream().map(user -> {
-            UserDTO dto = new UserDTO();
-            dto.setId_user(user.getId_user());
-            dto.setUsername(user.getUsername());
-            dto.setRole(user.getRole());
-            return dto;
-        }).toList();
-    }
+public List<UserDTO> getAllUsers() {
+    List<User> users = userRepository.findAll();
+    return users.stream().map(user -> {
+        UserDTO dto = new UserDTO();
+        dto.setId_user(user.getId_user());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setPassword(user.getPassword());
+        dto.setTelephone(user.getTelephone());
+        dto.setRole(user.getRole());
+        return dto;
+    }).toList();
+}
+
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginData) {
@@ -66,19 +70,23 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable int id) {
-        Optional<User> userOpt = userRepository.findById(id);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            UserDTO dto = new UserDTO();
-            dto.setId_user(user.getId_user());
-            dto.setUsername(user.getUsername());
-            dto.setRole(user.getRole());
-            return ResponseEntity.ok(dto);
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+public ResponseEntity<UserDTO> getUserById(@PathVariable int id) {
+    Optional<User> userOpt = userRepository.findById(id);
+    if (userOpt.isPresent()) {
+        User user = userOpt.get();
+        UserDTO dto = new UserDTO();
+        dto.setId_user(user.getId_user());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setPassword(user.getPassword());
+        dto.setTelephone(user.getTelephone());
+        dto.setRole(user.getRole());
+        return ResponseEntity.ok(dto);
+    } else {
+        return ResponseEntity.notFound().build();
     }
+}
+
 
     @PostMapping
     public User createUser(@RequestBody User user) {

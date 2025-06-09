@@ -11,7 +11,7 @@ import {
 
 const NAV_ITEMS = [
   { route: 'Dashboard', Icon: Home },
-  { route: 'Sell', Icon: DollarSign },
+ { route: 'SalesListScreen', Icon: DollarSign, relatedRoutes: ['SalesListScreen', 'AddSaleScreen'] },
   { route: 'BuysScreen', Icon: ShoppingCart },
   { route: 'ProductAD', Icon: Package },
   { route: 'Categorie', Icon: Boxes, iconRoute: 'ProductStock' },

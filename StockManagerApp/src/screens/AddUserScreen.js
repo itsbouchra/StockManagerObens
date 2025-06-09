@@ -7,12 +7,16 @@ import {
   StyleSheet,
   SafeAreaView,
   Image,
+   ScrollView,
   Alert,
 } from 'react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { ArrowLeft, Settings, Bell, Eye, UploadCloud } from 'lucide-react-native';
 import BottomNavBar from '../components/BottomNavBar';
 import { launchImageLibrary } from 'react-native-image-picker';
+
+
+
 
 export default function AddUserScreen({ navigation }) {
   const [form, setForm] = useState({
@@ -90,25 +94,29 @@ export default function AddUserScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={{ flex: 1 }}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <ArrowLeft size={22} color="#fff" />
-            </TouchableOpacity>
-            <Settings size={24} color="#f5c518" />
-            <Text style={styles.headerTitle}>Paramètres</Text>
-          </View>
-          <TouchableOpacity>
-            <Bell size={20} color="#fff" />
+  <SafeAreaView style={styles.container}>
+    <View style={{ flex: 1 }}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ArrowLeft size={22} color="#fff" />
           </TouchableOpacity>
+          <Settings size={24} color="#f5c518" />
+          <Text style={styles.headerTitle}>Paramètres</Text>
         </View>
+        <TouchableOpacity>
+          <Bell size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
+      {/* Scrollable content */}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.title}>Ajouter un utilisateur</Text>
 
-        {/* Form */}
         <View style={styles.form}>
           <Text style={styles.label}>Nom d'utilisateur :</Text>
           <TextInput
@@ -187,18 +195,25 @@ export default function AddUserScreen({ navigation }) {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </ScrollView>
+    </View>
 
-      {/* Bottom NavBar */}
-      <View style={styles.bottomBarContainer}>
-        <BottomNavBar navigation={navigation} currentRoute="AddUser" />
-      </View>
-    </SafeAreaView>
-  );
+    {/* Fixed Bottom NavBar */}
+    <View style={styles.bottomBarContainer}>
+      <BottomNavBar navigation={navigation} currentRoute="AddUser" />
+    </View>
+  </SafeAreaView>
+);
+
+  
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: {
+  paddingBottom: 220, // Laisse assez de place pour les boutons + navbar
+},
+
   header: {
     flexDirection: 'row',
     backgroundColor: '#7a8b2d',

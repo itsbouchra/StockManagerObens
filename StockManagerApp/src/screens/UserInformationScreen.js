@@ -7,6 +7,7 @@ import { ArrowLeft, Settings, Eye, Bell, Camera } from 'lucide-react-native';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { launchImageLibrary } from 'react-native-image-picker';
 import BottomNavBar from '../components/BottomNavBar';
+import { ScrollView } from 'react-native';
 
 export default function UserInformationScreen({ route, navigation }) {
   const { user } = route.params;
@@ -114,24 +115,25 @@ export default function UserInformationScreen({ route, navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* En-tête */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <Settings size={25} color="#f5c518" />
-          <Text style={styles.headerTitle}>Paramètres</Text>
-        </View>
-        <TouchableOpacity>
-          <Bell size={20} color="#fff" />
+  <View style={styles.container}>
+    {/* En-tête */}
+    <View style={styles.header}>
+      <View style={styles.headerLeft}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
+          <ArrowLeft size={22} color="#fff" />
         </TouchableOpacity>
+        <Settings size={25} color="#f5c518" />
+        <Text style={styles.headerTitle}>Paramètres</Text>
       </View>
+      <TouchableOpacity>
+        <Bell size={20} color="#fff" />
+      </TouchableOpacity>
+    </View>
 
+    {/* Scrollable content */}
+    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
       <Text style={styles.title}>Informations de l'utilisateur</Text>
 
-      {/* Avatar + Icône Caméra */}
       <View style={styles.avatarContainer}>
         <TouchableOpacity onPress={pickImage}>
           <View>
@@ -158,7 +160,7 @@ export default function UserInformationScreen({ route, navigation }) {
           <TextInput
             style={styles.passwordInput}
             secureTextEntry={!showPassword}
-            value={form.password}
+            value={form.password || ''}
             onChangeText={(t) => handleChange('password', t)}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
@@ -167,7 +169,11 @@ export default function UserInformationScreen({ route, navigation }) {
         </View>
 
         <Text>Téléphone :</Text>
-        <TextInput style={styles.input} value={form.telephone} onChangeText={(t) => handleChange('telephone', t)} />
+        <TextInput
+          style={styles.input}
+          value={form.telephone || ''}
+          onChangeText={(t) => handleChange('telephone', t)}
+        />
 
         <Text>Rôle :</Text>
         <DropDownPicker
@@ -186,25 +192,32 @@ export default function UserInformationScreen({ route, navigation }) {
           style={styles.dropdown}
         />
       </View>
+    </ScrollView>
 
-      {/* Boutons bas */}
-      <View style={styles.bottomActions}>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.btnEdit} onPress={handleUpdate}>
-            <Text style={styles.btnText}>Modifier</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btnDelete} onPress={handleDelete}>
-            <Text style={styles.btnText}>Supprimer</Text>
-          </TouchableOpacity>
-        </View>
-        <BottomNavBar navigation={navigation} currentRoute="Users" />
+    {/* Fixed Bottom */}
+    <View style={styles.bottomActions}>
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.btnEdit} onPress={handleUpdate}>
+          <Text style={styles.btnText}>Modifier</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.btnDelete} onPress={handleDelete}>
+          <Text style={styles.btnText}>Supprimer</Text>
+        </TouchableOpacity>
       </View>
+      <BottomNavBar navigation={navigation} currentRoute="Users" />
     </View>
-  );
+  </View>
+);
+
+
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: {
+  paddingBottom: 200, // Assez pour voir le dropdown + boutons + navbar
+},
+
   header: {
     flexDirection: 'row',
     backgroundColor: '#7a8b2d',
@@ -239,7 +252,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 4,
   },
-  form: { paddingHorizontal: 20, gap: 10, paddingBottom: 140 },
+  form: {
+  paddingHorizontal: 20,
+  gap: 10,
+},
+
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
