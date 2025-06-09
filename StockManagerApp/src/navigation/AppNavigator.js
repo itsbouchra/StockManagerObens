@@ -26,6 +26,9 @@ import BuysScreen from '../screens/BuysScreen';
 import AddOrderScreen from '../screens/AddOrderScreen';
 import EditAchatScreen from '../screens/EditAchatScreen';
 import AddReceptionScreen from '../screens/AddReceptionScreen';
+import AddSaleScreen from '../screens/AddSaleScreen';
+import SalesListScreen from '../screens/SalesListScreen';
+import EditVenteScreen from '../screens/EditVenteScreen';
 import ReceptionListScreen from '../screens/ReceptionListScreen';
 import PdfViewerScreen from '../screens/PdfViewerScreen';
 import ProductReceptionScreen from '../screens/ProductReceptionScreen';
@@ -86,6 +89,14 @@ const AppNavigator = () => {
         <Stack.Screen name="UserInfo" component={UserInformationScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SettingsCategorieScreen" component={SettingsCategorieScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AddCategorieScreen" component={AddCategorieScreen} options={{ headerShown: false }} />
+         <Stack.Screen name="AddSaleScreen" component={AddSaleScreen} options={{ headerShown: false }} />
+
+         <Stack.Screen name='SalesListScreen' component={SalesListScreen} options={{ headerShown:false}}/>
+         <Stack.Screen name='EditVenteScreen' component={EditVenteScreen} options={{ headerShown:false}}/>
+
+
+  
+
         <Stack.Screen name="ReceptionListScreen" component={ReceptionListScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PdfViewerScreen" component={PdfViewerScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProductReceptionScreen" component={ProductReceptionScreen} options={{ headerShown: false }} />

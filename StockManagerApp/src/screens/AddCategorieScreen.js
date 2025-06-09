@@ -78,15 +78,17 @@ export default function AddCategorieScreen({ navigation, route }) {
     <View style={styles.container}>
       {/* En-tête */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <ArrowLeft size={22} color="#fff" />
-        </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Settings size={25} color="#f5c518" />
-          <Text style={styles.headerTitle}>Paramètres</Text>
-        </View>
-        <Bell size={20} color="#fff" />
-      </View>
+              <View style={styles.headerLeft}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <ArrowLeft size={22} color="#fff" />
+                </TouchableOpacity>
+                <Settings size={25} color="#f5c518" />
+                <Text style={styles.headerTitle}>Paramètres</Text>
+              </View>
+              <TouchableOpacity>
+                <Bell size={20} color="#fff" />
+              </TouchableOpacity>
+            </View>
 
       {/* Formulaire */}
       <ScrollView contentContainerStyle={styles.content}>
@@ -138,14 +140,15 @@ export default function AddCategorieScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: {
+    header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     backgroundColor: '#7a8b2d',
-    padding: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  headerContent: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

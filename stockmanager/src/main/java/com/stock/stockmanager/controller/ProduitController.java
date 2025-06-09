@@ -1,5 +1,4 @@
 package com.stock.stockmanager.controller;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,7 +19,6 @@ import com.stock.stockmanager.dto.ProduitDTO;
 import com.stock.stockmanager.model.Produit;
 import com.stock.stockmanager.repository.CategorieRepository;
 import com.stock.stockmanager.repository.ProduitRepository;
-
 
 @RestController
 @RequestMapping("/produits")
