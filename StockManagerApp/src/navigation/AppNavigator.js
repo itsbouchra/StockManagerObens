@@ -29,6 +29,7 @@ import AddReceptionScreen from '../screens/AddReceptionScreen';
 import AddSaleScreen from '../screens/AddSaleScreen';
 import SalesListScreen from '../screens/SalesListScreen';
 import EditVenteScreen from '../screens/EditVenteScreen';
+import AddLivraisonScreen from '../screens/AddLivraisonScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -79,6 +80,7 @@ const AppNavigator = () => {
 
          <Stack.Screen name='SalesListScreen' component={SalesListScreen} options={{ headerShown:false}}/>
          <Stack.Screen name='EditVenteScreen' component={EditVenteScreen} options={{ headerShown:false}}/>
+         <Stack.Screen name='AddLivraisonScreen' component={AddLivraisonScreen} options={{ headerShown:false}}/>
 
 
   

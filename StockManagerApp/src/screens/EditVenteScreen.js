@@ -11,15 +11,16 @@ import {
   StyleSheet,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
-import TopBar from '../components/TopBar';
+
 import BottomNavBar from '../components/BottomNavBar';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { ArrowLeft, DollarSign, Bell, Settings } from 'lucide-react-native';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const EditVenteScreen = ({ route, navigation }) => {
-  const { idVente } = route.params;
+  const { id } = route.params;
 
   const [clients, setClients] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -41,7 +42,7 @@ const EditVenteScreen = ({ route, navigation }) => {
         const [clientsRes, categoriesRes, venteRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/users`),
           fetch(`${API_BASE_URL}/categories/all`),
-          fetch(`${API_BASE_URL}/api/ventes/${idVente}`),
+          fetch(`${API_BASE_URL}/api/ventes/${id}`),
         ]);
 
         const clientsData = await clientsRes.json();
@@ -60,7 +61,8 @@ const EditVenteScreen = ({ route, navigation }) => {
           quantite: l.quantite.toString(),
           prix: l.prix.toString(),
           total: l.total,
-          key: `edit_${l.idProduit}_${i}`,
+          key: `${l.idProduit}_${l.prix}_${l.quantite}_${i}`, // ✅ clé plus unique
+
         }));
         setLignes(formattedLignes);
 
@@ -76,7 +78,7 @@ const EditVenteScreen = ({ route, navigation }) => {
       }
     };
     fetchData();
-  }, [idVente]);
+  }, [id]);
 
   useEffect(() => {
     if (!categorieSelected) return setProduits([]);
@@ -94,7 +96,7 @@ const EditVenteScreen = ({ route, navigation }) => {
     setSaving(true);
     try {
       const ventePayload = {
-        idVente,
+        id,
         dateVente: date,
         idClient: clientSelected,
         montantTotal: totalGeneral,
@@ -106,7 +108,7 @@ const EditVenteScreen = ({ route, navigation }) => {
           total: Number(l.total),
         })),
       };
-      const res = await fetch(`${API_BASE_URL}/api/ventes/${idVente}`, {
+      const res = await fetch(`${API_BASE_URL}/api/ventes/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(ventePayload),
@@ -127,7 +129,24 @@ const EditVenteScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar title="Modifier Vente" onGoBack={() => navigation.goBack()} />
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <ArrowLeft size={22} color="#fff" />
+          </TouchableOpacity>
+          <DollarSign size={22} color="#f5c518" />
+          <Text style={styles.headerTitle}>Ventes</Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <TouchableOpacity>
+            <Bell size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+            <Settings size={24} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <Text style={styles.pageTitle}>Modifier Vente</Text>
 
@@ -386,6 +405,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f3f4f6',
   },
+   header: {
+    flexDirection: 'row',
+    backgroundColor: '#7a8b2d',
+    padding: 14,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerTitle: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 20,
+    fontFamily: 'serif',
+    marginLeft: 6,
+  },
+
 });
+
+
+
 
 export default EditVenteScreen;
