@@ -15,10 +15,6 @@ public class VenteDTO {
     private String username;
     private String nomClient;
     private Integer idClient;
-<<<<<<< HEAD
-=======
-   
->>>>>>> livrison
     private List<LigneVenteDTO> lignes;
 
     // Constructeur par défaut
@@ -28,11 +24,7 @@ public class VenteDTO {
     public VenteDTO(Vente vente) {
         if (vente == null) return;
 
-<<<<<<< HEAD
         this.id = vente.getId();
-=======
-         this.id = vente.getId();
->>>>>>> livrison
         this.dateVente = (vente.getDateVente() != null) ? vente.getDateVente().toString() : null;
         this.montantTotal = vente.getMontantTotal();
         this.statut = vente.getStatut();

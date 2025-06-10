@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -5,6 +6,7 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { ArrowLeft, DollarSign, Bell, Settings } from 'lucide-react-native';
 import BottomNavBar from '../components/BottomNavBar';
@@ -15,13 +17,13 @@ const API_BASE_URL = 'http://10.0.2.2:8080';
 export default function SalesListScreen({ navigation, route }) {
   const [ventes, setVentes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [venteToDelete, setVenteToDelete] = useState(null);
 
   const fetchVentes = async () => {
     setLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/ventes`);
-
-
       const data = await res.json();
       setVentes(data);
     } catch (error) {
@@ -48,6 +50,9 @@ export default function SalesListScreen({ navigation, route }) {
         text1: 'Erreur suppression',
         text2: err.message,
       });
+    } finally {
+      setShowDeleteModal(false);
+      setVenteToDelete(null);
     }
   };
 
@@ -133,65 +138,7 @@ export default function SalesListScreen({ navigation, route }) {
         data={ventes}
         keyExtractor={(item, index) => (item.id ?? index).toString()}
         renderItem={({ item }) => (
-          <View style={{
-            padding: 18,
-            backgroundColor: '#F9D8D6',
-            marginBottom: 18,
-            borderRadius: 16,
-            marginHorizontal: 16,
-            borderWidth: 1,
-            borderColor: '#e5e7eb',
-            position: 'relative',
-          }}>
-            {item.statut.toLowerCase() === 'en attente' && (
-              <TouchableOpacity
-                onPress={async () => {
-                  try {
-                    const res = await fetch(`${API_BASE_URL}/api/ventes/${item.id}/produits`);
-
-                    const produits = await res.json();
-
-console.log('🔍 Réponse reçue:', produits);
-console.log('✅ Est un tableau ?', Array.isArray(produits));
-
-if (!Array.isArray(produits)) {
-  console.log('⚠️ Mauvais format reçu:', produits);
-  throw new Error('Produits n’est pas un tableau');
-}
-
-
-                    navigation.navigate('AddLivraisonScreen', {
-                      vente: item,
-                      produits,
-                    });
-                  } catch (err) {
-                    console.error('❌ Erreur produits:', err);
-                    Toast.show({
-                      type: 'error',
-                      text1: 'Erreur',
-                      text2: 'Liste des produits introuvable ou mal formatée.',
-                    });
-                  }
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 10,
-                  right: 10,
-                  backgroundColor: '#d9f99d',
-                  borderRadius: 999,
-                  width: 34,
-                  height: 34,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderWidth: 2,
-                  borderColor: '#65a30d',
-                  zIndex: 10
-                }}
-              >
-                <Text style={{ fontSize: 22, color: '#365314', fontWeight: 'bold' }}>+</Text>
-              </TouchableOpacity>
-            )}
-
+          <View style={{ padding: 18, backgroundColor: '#F9D8D6', marginBottom: 18, borderRadius: 16, marginHorizontal: 16, borderWidth: 1, borderColor: '#e5e7eb' }}>
             <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>
               Vente #{item.id}
             </Text>
@@ -209,20 +156,8 @@ if (!Array.isArray(produits)) {
             </View>
             <View style={{ flexDirection: 'row', marginBottom: 4, alignItems: 'center' }}>
               <Text style={{ fontWeight: 'bold', width: 110, color: '#6b7280' }}>Statut :</Text>
-              <View style={{
-                backgroundColor: getStatutBadgeStyle(item.statut).backgroundColor,
-                borderColor: getStatutBadgeStyle(item.statut).borderColor,
-                borderWidth: 1.8,
-                paddingVertical: 4,
-                paddingHorizontal: 12,
-                borderRadius: 20,
-              }}>
-                <Text style={{
-                  color: getStatutBadgeStyle(item.statut).textColor,
-                  fontWeight: 'bold',
-                  fontSize: 12,
-                  textTransform: 'uppercase',
-                }}>
+              <View style={{ backgroundColor: getStatutBadgeStyle(item.statut).backgroundColor, borderColor: getStatutBadgeStyle(item.statut).borderColor, borderWidth: 1.8, paddingVertical: 4, paddingHorizontal: 12, borderRadius: 20 }}>
+                <Text style={{ color: getStatutBadgeStyle(item.statut).textColor, fontWeight: 'bold', fontSize: 12, textTransform: 'uppercase' }}>
                   {formatStatutLabel(item.statut)}
                 </Text>
               </View>
@@ -231,7 +166,7 @@ if (!Array.isArray(produits)) {
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
               <TouchableOpacity
                 style={{ backgroundColor: '#e0f2fe', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#38bdf8' }}
-                onPress={() => navigation.navigate('EditVenteScreen', { id: item.id })}
+                onPress={() => navigation.navigate('EditVenteScreen', { idVente: item.id })}
               >
                 <Text style={{ fontSize: 26, color: '#0ea5e9' }}>✏️</Text>
               </TouchableOpacity>
@@ -244,7 +179,7 @@ if (!Array.isArray(produits)) {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={{ backgroundColor: '#fef9c3', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#eab308' }}
+                style={{ backgroundColor: '#fef9c3', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#eab308', shadowColor: '#eab308', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 }}
               >
                 <Text style={{ fontSize: 26, color: '#b45309' }}>🖨️</Text>
               </TouchableOpacity>

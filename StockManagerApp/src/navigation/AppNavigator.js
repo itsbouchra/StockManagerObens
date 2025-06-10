@@ -29,7 +29,6 @@ import AddReceptionScreen from '../screens/AddReceptionScreen';
 import AddSaleScreen from '../screens/AddSaleScreen';
 import SalesListScreen from '../screens/SalesListScreen';
 import EditVenteScreen from '../screens/EditVenteScreen';
-<<<<<<< HEAD
 import ReceptionListScreen from '../screens/ReceptionListScreen';
 import PdfViewerScreen from '../screens/PdfViewerScreen';
 import ProductReceptionScreen from '../screens/ProductReceptionScreen';
@@ -44,9 +43,6 @@ import SupplierPdfViewerScreen from '../screens/SupplierPdfViewerScreen';
 import SupplierAccountInfoScreen from '../screens/SupplierAccountInfoScreen';
 import SupplierNotificationsScreen from '../screens/SupplierNotificationsScreen';
 import AdminNotificationsScreen from '../screens/AdminNotificationsScreen';
-=======
-import AddLivraisonScreen from '../screens/AddLivraisonScreen';
->>>>>>> livrison
 
 const Stack = createNativeStackNavigator();
 
@@ -97,7 +93,6 @@ const AppNavigator = () => {
 
          <Stack.Screen name='SalesListScreen' component={SalesListScreen} options={{ headerShown:false}}/>
          <Stack.Screen name='EditVenteScreen' component={EditVenteScreen} options={{ headerShown:false}}/>
-         <Stack.Screen name='AddLivraisonScreen' component={AddLivraisonScreen} options={{ headerShown:false}}/>
 
 
   
