@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.stockmanager.dto.LigneVenteDTO;
+import com.stock.stockmanager.dto.ProduitVenteDTO;
 import com.stock.stockmanager.dto.VenteDTO;
 import com.stock.stockmanager.model.LigneVente;
 import com.stock.stockmanager.model.Produit;
@@ -110,35 +111,33 @@ public ResponseEntity<?> addVente(@RequestBody VenteDTO venteDTO) {
                 .map(vente -> ResponseEntity.ok(new VenteDTO(vente)))
                 .orElse(ResponseEntity.notFound().build());
     }
+@GetMapping("/{id}/produits")
 
-  @DeleteMapping("/{id}")
-public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
-    try {
-        return venteRepository.findById(id).map(vente -> {
-            // Nettoyer les lignes associées
-            if (vente.getLignes() != null) {
-                vente.getLignes().clear();
-            }
-
-            // Nettoyer les livraisons associées
-            if (vente.getLivraisons() != null) {
-                vente.getLivraisons().clear();
-            }
-
-            // Sauvegarder les relations nettoyées
-            venteRepository.save(vente);
-
-            // Supprimer la vente elle-même
-            venteRepository.delete(vente);
-
-            return ResponseEntity.ok("Vente supprimée avec succès");
-        }).orElse(ResponseEntity.status(404).body("Vente introuvable"));
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Erreur lors de la suppression : " + e.getMessage());
-    }
+public ResponseEntity<List<ProduitVenteDTO>> getProduitsDeVente(@PathVariable Integer id) {
+    return venteRepository.findById(id)
+        .map(vente -> {
+            List<ProduitVenteDTO> produits = vente.getLignes().stream()
+                .map(ligne -> new ProduitVenteDTO(
+                    ligne.getProduit().getId(),
+                    ligne.getProduit().getNom(),
+                    ligne.getQuantite()
+                ))
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(produits);
+        })
+        .orElse(ResponseEntity.ok(List.of())); // ✅ Retourne une liste vide au lieu d'un String
 }
 
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
+        if (!venteRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        venteRepository.deleteById(id);
+        return ResponseEntity.ok("Vente supprimée");
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVente(@PathVariable Integer id, @RequestBody VenteDTO venteDTO) {
