@@ -1,13 +1,20 @@
 package com.stock.stockmanager.controller;
 
-import com.stock.stockmanager.repository.ProduitRepository;
-import com.stock.stockmanager.model.Produit;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import com.stock.stockmanager.model.Produit;
+import com.stock.stockmanager.repository.ProduitRepository;
+import com.stock.stockmanager.service.ActivityService;
+import com.stock.stockmanager.dto.DashboardSummaryDTO;
+
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
@@ -15,13 +22,20 @@ public class DashboardController {
     @Autowired
     private ProduitRepository produitRepository;
 
+    @Autowired
+    private ActivityService activityService;
+
     @GetMapping("/summary")
-    public Map<String, Integer> getSummary() {
-        Map<String, Integer> summary = new HashMap<>();
-        summary.put("totalProducts", produitRepository.countAllProduits());
-        summary.put("outOfStock", produitRepository.countOutOfStock());
-        summary.put("lowStock", produitRepository.countLowStock());
-        return summary;
+    public ResponseEntity<DashboardSummaryDTO> getDashboardSummary() {
+        DashboardSummaryDTO dashboardSummaryDTO = new DashboardSummaryDTO();
+        dashboardSummaryDTO.setTotalProducts(produitRepository.countAllProduits());
+        dashboardSummaryDTO.setOutOfStock(produitRepository.countOutOfStock());
+        dashboardSummaryDTO.setLowStock(produitRepository.countLowStock());
+
+        dashboardSummaryDTO.setRecentActivityCount(activityService.getAllRecentActivities().size());
+        dashboardSummaryDTO.setActivities(activityService.getTop4RecentActivities());
+
+        return ResponseEntity.ok(dashboardSummaryDTO);
     }
 
     @GetMapping("/distribution")
@@ -35,10 +49,5 @@ public class DashboardController {
         }
 
         return distribution;
-    }
-
-    @GetMapping("/activity")
-    public List<String> getRecentActivities() {
-        return List.of("Real data will go here soon");
     }
 }

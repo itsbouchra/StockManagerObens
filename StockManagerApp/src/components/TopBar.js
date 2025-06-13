@@ -10,7 +10,7 @@ import {
   ShoppingCart,
 } from 'lucide-react-native';
 
-const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress, activeRightIcon }) => {
+const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress, activeRightIcon, notificationCount, onSettingsPress }) => {
   const iconColor = (iconName) => (
     (activeLeftIcon === iconName) || (activeRightIcon === iconName) ? '#E1B12C' : 'white'
   );
@@ -26,7 +26,16 @@ const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress,
       case 'BuysScreen':
         return <ShoppingCart size={26} color={iconColor('BuysScreen')} />;
       case 'notifications':
-        return <Bell size={26} color={iconColor('notifications')} />;
+        return (
+          <View>
+            <Bell size={26} color={iconColor('notifications')} />
+            {notificationCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+              </View>
+            )}
+          </View>
+        );
       default:
         return null;
     }
@@ -47,8 +56,13 @@ const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress,
       <View style={styles.rightSection}>
         <TouchableOpacity style={styles.iconButton} onPress={onNotificationPress}> 
           <Bell size={22} color={iconColor('notifications')} />
+          {notificationCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={onSettingsPress}>
           <Settings size={22} color={iconColor('settings')} />
         </TouchableOpacity>
       </View>
@@ -89,6 +103,22 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     marginRight: 16,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

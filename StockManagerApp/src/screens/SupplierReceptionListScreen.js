@@ -6,17 +6,21 @@ import {
   FlatList,
   StyleSheet,
   Image,
+  TouchableOpacity,
 } from 'react-native';
 import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const SupplierReceptionListScreen = ({ route, navigation }) => {
   const { achat } = route.params;
+  const { user, unreadNotificationsCount } = useAuth();
   const [receptions, setReceptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchReceptions = async () => {
     setLoading(true);
@@ -51,15 +55,15 @@ const SupplierReceptionListScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <SupplierTopBar
-        title="Ventes"
-        onSettingsPress={() => navigation.goBack()}
+        title="Réceptions"
         onGoBack={() => navigation.goBack()}
-        iconName="sell"
+        iconName="home"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
 
-      <Text style={styles.title}>
-        Livraisons pour Vente #{achat.idAchat}
+      <Text style={styles.screenTitle}>
+        Réceptions pour Achat #{achat.idAchat}
       </Text>
 
       <FlatList
@@ -119,7 +123,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f3f4f6',
   },
-  title: {
+  screenTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',

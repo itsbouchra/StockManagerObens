@@ -5,9 +5,11 @@ import { useNavigation } from '@react-navigation/native';
 
 const ACTIVE_COLOR = '#E1B12C';
 
-const SupplierTopBar = ({ title, onSettingsPress, onGoBack, iconName, active }) => {
+const SupplierTopBar = ({ title, onSettingsPress, onGoBack, iconName, active, notificationCount, isRightSettingsActive }) => {
   const navigation = useNavigation();
   const iconColor = active ? ACTIVE_COLOR : 'white';
+
+  console.log('SupplierTopBar: notificationCount received:', notificationCount);
 
   const handleBack = () => {
     if (onGoBack) {
@@ -25,19 +27,25 @@ const SupplierTopBar = ({ title, onSettingsPress, onGoBack, iconName, active }) 
         return <Home size={26} color={iconColor} style={styles.iconBeforeTitle} />;
       case 'profile':
         return <User size={26} color={iconColor} style={styles.iconBeforeTitle} />;
+      case 'notifications':
+        return <Bell size={26} color={iconColor} style={styles.iconBeforeTitle} />;
+      case 'settings':
+        return <Settings size={26} color={iconColor} style={styles.iconBeforeTitle} />;
       default:
-        return <Home size={26} color="white" style={styles.iconBeforeTitle} />;
+        return null;
     }
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.leftSection}>
-        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-          <ArrowLeft size={24} color="white" />
-        </TouchableOpacity>
+        {onGoBack && (
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <ArrowLeft size={24} color="white" />
+          </TouchableOpacity>
+        )}
         {renderIcon()}
-        <Text style={[styles.title, { color: ACTIVE_COLOR }]}>{title}</Text>
+        <Text style={[styles.title, { color: 'white' }]}>{title}</Text>
       </View>
 
       <View style={styles.rightSection}>
@@ -46,12 +54,17 @@ const SupplierTopBar = ({ title, onSettingsPress, onGoBack, iconName, active }) 
           style={styles.iconButton}
         >
           <Bell size={22} color="white" />
+          {notificationCount > 0 && (
+            <View style={styles.notificationBadge}>
+              <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity 
-          onPress={onSettingsPress}
+          onPress={() => navigation.navigate('AboutApp')}
           style={styles.iconButton}
         >
-          <Settings size={22} color="white" />
+          <Settings size={22} color={isRightSettingsActive ? ACTIVE_COLOR : 'white'} />
         </TouchableOpacity>
       </View>
     </View>
@@ -94,6 +107,22 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     marginLeft: 10,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
+    backgroundColor: 'red',
+    borderRadius: 9,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
 

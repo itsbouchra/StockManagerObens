@@ -4,6 +4,7 @@ import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import StatCard from '../components/StatCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 import {
   DollarSign,
   CheckCircle,
@@ -21,6 +22,7 @@ const LIGHT_GREEN = '#A8BDA0';
 const LIGHT_YELLOW = '#FFF4B1';
 
 const SupplierDashboardScreen = ({ navigation }) => {
+  const { user, unreadNotificationsCount } = useAuth();
   const [userName, setUserName] = useState('Utilisateur');
   const [stats, setStats] = useState({
     totalSells: 0,
@@ -93,6 +95,7 @@ const SupplierDashboardScreen = ({ navigation }) => {
         onSettingsPress={handleSettingsPress}
         iconName="home"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
 
       <ScrollView style={styles.content}>

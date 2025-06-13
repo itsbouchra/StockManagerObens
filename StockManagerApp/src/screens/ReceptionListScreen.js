@@ -7,15 +7,21 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import Toast from 'react-native-toast-message';
+import { useAuth } from '../context/AuthContext';
+
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const ReceptionListScreen = ({ navigation, route }) => {
+  const { unreadNotificationsCount } = useAuth();
   const [receptions, setReceptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const { achat } = route.params;
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchReceptions = async () => {
     try {
@@ -43,10 +49,13 @@ const ReceptionListScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <TopBar 
-        title="Réceptions" 
-        active="BuysScreen"
+      <TopBar
+        title="Réceptions"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="stock"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <Text style={styles.screenTitle}>Réceptions pour Achat #{achat.idAchat}</Text>
       <FlatList

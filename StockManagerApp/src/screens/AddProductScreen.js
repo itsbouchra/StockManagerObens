@@ -14,6 +14,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Upload } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
 const defaultImage = require('../assets/default.png'); // chemin relatif vers ton image
 
 
@@ -29,6 +30,13 @@ const AddProductScreen = ({ route, navigation }) => {
   const [unit, setUnit] = useState('');
   const [stockMin, setStockMin] = useState('');
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([]);
+  const [error, setError] = useState('');
+
+  const auth = useAuth();
+  console.log("Value returned by useAuth() in AddProductScreen:", auth);
+  const { unreadNotificationsCount } = auth;
 
   // focus states
   const [focus, setFocus] = useState({
@@ -104,7 +112,14 @@ const AddProductScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar title="Produits" active="ProductAD" onGoBack={() => navigation.goBack()} />
+      <TopBar
+        title="Ajouter un Produit"
+        onGoBack={() => navigation.goBack()}
+        activeLeftIcon="ProductAD"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
+      />
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <Text style={styles.pageTitle}>Ajouter produit</Text>
  

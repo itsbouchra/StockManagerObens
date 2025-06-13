@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, ActivityIndicator, FlatList, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import StatCard from '../components/StatCard';
 import PieChartSection from '../components/PieChartSection';
 import TopBar from '../components/TopBar';
+import { useAuth } from '../context/AuthContext';
+import { ArrowRightCircle, ArrowLeftCircle } from 'lucide-react-native';
 
 const Dashboard = ({ navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
  
@@ -13,15 +16,25 @@ const Dashboard = ({ navigation }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [summaryRes, activityRes, distRes] = await Promise.all([
+        const [summaryRes, distRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/dashboard/summary`),
-          fetch(`${API_BASE_URL}/api/dashboard/activity`),
           fetch(`${API_BASE_URL}/api/dashboard/distribution`),
         ]);
 
         const summary = await summaryRes.json();
-        const activities = await activityRes.json();
         const distribution = await distRes.json();
+
+        // Transform activities data to match the AllActivitiesScreen format
+        const transformedActivities = summary.activities.map(activity => {
+          const [year, month, day] = activity.date.split('-');
+          const formattedDate = `${day}/${month}/${year}`;
+          return {
+            id: activity.id,
+            type: activity.type.toLowerCase(),
+            amount: `${activity.montant}dh`,
+            date: formattedDate,
+          };
+        });
 
         const transformedDistribution = Object.entries(distribution).map(
           ([category, value], index) => ({
@@ -35,8 +48,7 @@ const Dashboard = ({ navigation }) => {
 
         setDashboardData({
           ...summary,
-          recentActivityCount: activities.length,
-          activities,
+          activities: transformedActivities.slice(0, 3), // Still take only the last 3
           distribution: transformedDistribution,
         });
       } catch (err) {
@@ -108,69 +120,158 @@ const Dashboard = ({ navigation }) => {
     },
   ];
 
-  const renderItem = ({ item }) => (
-    <View
-      style={{
-        paddingVertical: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: '#d1d5db',
-        paddingHorizontal: 16,
-      }}
-    >
-      <Text>{item.description}</Text>
-      <Text style={{ color: '#6b7280' }}>{item.date}</Text>
-    </View>
-  );
+  const renderActivityItem = ({ item }) => {
+    return (
+      <View style={styles.activityItem}>
+        <View style={styles.activityTypeContainer}>
+          {item.type === 'achat' ? (
+            <ArrowRightCircle size={20} color="#4CAF50" />
+          ) : (
+            <ArrowLeftCircle size={20} color="#F44336" />
+          )}
+          <Text style={styles.activityDescription}>{item.type}</Text>
+        </View>
+        <View style={styles.verticalDivider} />
+        <Text style={styles.activityAmount}>{item.amount}</Text>
+        <View style={styles.verticalDivider} />
+        <Text style={styles.activityDate}>{item.date}</Text>
+      </View>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Overview"
         activeLeftIcon="home"
+        onGoBack={() => navigation.goBack()}
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          padding: 13,
-        }}
-      >
-        {cardsData.map(({ label, value, bgColor, iconName }) => (
-          <StatCard
-            key={label}
-            label={label}
-            value={value}
-            bgColor={bgColor}
-            iconName={iconName}
-            style={{ width: '48%', marginBottom: 13, height: 95 }}
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            justifyContent: 'space-between',
+            padding: 13,
+          }}
+        >
+          {cardsData.map(({ label, value, bgColor, iconName, onPress }) => (
+            <StatCard
+              key={label}
+              label={label}
+              value={value}
+              bgColor={bgColor}
+              iconName={iconName}
+              style={{ width: '48%', marginBottom: 13, height: 95 }}
+              onPress={onPress}
+            />
+          ))}
+        </View>
+
+        <TouchableOpacity
+          style={styles.recentActivityBox}
+          onPress={() => navigation.navigate('AllActivitiesScreen')}
+        >
+          <Text style={styles.recentActivityTitle}>Recent activity</Text>
+          <FlatList
+            data={dashboardData.activities}
+            keyExtractor={(item, index) =>
+              item?.id ? item.id.toString() : index.toString()
+            }
+            renderItem={renderActivityItem}
+            scrollEnabled={false}
+            contentContainerStyle={{ paddingBottom: 0 }}
           />
-        ))}
-      </View>
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: 'bold',
-          marginLeft: 16,
-          marginBottom: 8,
-        }}
-      >
-        Recent Activities
-      </Text>
-      <FlatList
-        data={dashboardData.activities}
-        keyExtractor={(item, index) =>
-          item?.id ? item.id.toString() : index.toString()
-        }
-        renderItem={renderItem}
-        ListFooterComponent={
+        </TouchableOpacity>
+
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginLeft: 16,
+            marginBottom: 8,
+          }}
+        >
+          Distribution des Produits
+        </Text>
+        <View
+          style={{
+            backgroundColor: '#ffffff',
+            padding: 15,
+            borderRadius: 10,
+            marginHorizontal: 16,
+            marginBottom: 80,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.2,
+            shadowRadius: 1.41,
+            elevation: 2,
+          }}
+        >
           <PieChartSection distributionData={dashboardData.distribution} />
-        }
-        contentContainerStyle={{ paddingBottom: 80 }}
-      />
+        </View>
+      </ScrollView>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  recentActivityBox: {
+    backgroundColor: '#FFF8E1', // Light yellow color from image
+    borderRadius: 15,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+    elevation: 2,
+  },
+  recentActivityTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+  },
+  activityItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingRight: 5,
+  },
+  activityTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  activityDescription: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  activityAmount: {
+    fontSize: 16,
+    color: '#555',
+    fontWeight: 'bold',
+  },
+  activityDate: {
+    fontSize: 14,
+    color: '#777',
+  },
+  verticalDivider: {
+    width: 1,
+    backgroundColor: '#ccc',
+    height: '70%',
+    marginHorizontal: 10,
+  },
+});
 
 export default Dashboard;

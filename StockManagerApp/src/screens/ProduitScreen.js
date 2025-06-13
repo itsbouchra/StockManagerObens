@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, FlatList, Image, Dimensions, TouchableOpacity } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const windowWidth = Dimensions.get('window').width;
 const boxMargin = 16;
@@ -10,6 +11,7 @@ const boxesPerRow = 2;
 const boxWidth = (windowWidth - boxMargin * (boxesPerRow + 1)) / boxesPerRow;
 
 const ProduitScreen = ({ route, navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { id_categorie, categorieNom } = route.params;
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,9 +44,12 @@ const ProduitScreen = ({ route, navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Stock"
-        active="stock"
+        title="Produits"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="ProductAD"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
 
       <Text style={{

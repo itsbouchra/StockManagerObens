@@ -55,8 +55,11 @@ const ProductAD = ({ navigation }) => {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Produits"
-        active="ProductAD"
+        activeLeftIcon="ProductAD"
         onGoBack={() => navigation.goBack()}
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={0}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
 
       <Text

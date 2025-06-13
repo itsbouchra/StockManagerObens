@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ScrollView, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const AddReceptionScreen = ({ navigation, route }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { achat } = route.params;
   const [produits, setProduits] = useState(
     route.params.produits.map(prod => ({
@@ -15,6 +17,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
   );
   const [openIndex, setOpenIndex] = useState(null);
   const [datePickerIdx, setDatePickerIdx] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const showDatePicker = idx => setDatePickerIdx(idx);
   const hideDatePicker = () => setDatePickerIdx(null);
@@ -71,9 +74,12 @@ const AddReceptionScreen = ({ navigation, route }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Reception"
-        active="BuysScreen"
+        title="Ajouter Réception"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="stock"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <Text style={{

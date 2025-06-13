@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Dimensions, Text, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
+import { View, Dimensions, Text, ActivityIndicator, TouchableOpacity, Platform, PermissionsAndroid } from 'react-native';
 import Pdf from 'react-native-pdf';
 import SupplierTopBar from '../components/SupplierTopBar';
 import Toast from 'react-native-toast-message';
 import RNFetchBlob from 'react-native-blob-util';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const SupplierPdfViewerScreen = ({ navigation, route }) => {
   const { pdfUrl } = route.params;
+  const { unreadNotificationsCount } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pdfSource, setPdfSource] = useState(null);
@@ -78,6 +80,7 @@ const SupplierPdfViewerScreen = ({ navigation, route }) => {
         onGoBack={() => navigation.goBack()}
         iconName="sell"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 20 }}>
         {loading && (

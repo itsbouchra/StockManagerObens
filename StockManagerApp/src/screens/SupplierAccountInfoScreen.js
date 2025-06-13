@@ -11,29 +11,103 @@ import { User, Phone, Mail, Lock } from 'lucide-react-native';
 import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import { useAuth } from '../context/AuthContext';
+import Toast from 'react-native-toast-message';
+
+const API_BASE_URL = 'http://10.0.2.2:8080/api';
 
 const SupplierAccountInfoScreen = ({ navigation }) => {
-  const { user, isLoading } = useAuth();
+  const { user, unreadNotificationsCount, fetchUnreadNotificationsCount } = useAuth();
   const [userData, setUserData] = useState({
     username: '',
     email: '',
     phone: '',
     role: 'fournisseur'
   });
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      console.log('SupplierAccountInfoScreen: user object from AuthContext:', user);
-      setUserData({
-        username: user.username || '',
-        email: user.email || '',
-        phone: user.telephone || '',
-        role: user.role || 'fournisseur'
-      });
-    } else if (!isLoading && !user) {
-      console.log('SupplierAccountInfoScreen: User not logged in, isLoading is false.');
+    if (user && user.id_user) {
+      console.log('SupplierAccountInfoScreen: User from useAuth:', user);
+      console.log('SupplierAccountInfoScreen: User role from useAuth:', user.role);
+      fetchUserData();
+      fetchUnreadNotificationsCount(user.role.toUpperCase(), user.id_user);
     }
-  }, [user, isLoading]);
+  }, [user]);
+
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${user.id_user}`);
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`Échec du chargement des données utilisateur. Statut: ${response.status}, Corps:`, errorBody);
+        throw new Error('Failed to fetch user data');
+      }
+      const data = await response.json();
+      console.log('SupplierAccountInfoScreen: Fetched user data from API:', data);
+      console.log('SupplierAccountInfoScreen: Role fetched from API:', data.role);
+      
+      // Vérifier si l'utilisateur est un fournisseur
+      if (!data.role || data.role.toLowerCase().trim() !== 'fournisseur') {
+        Toast.show({
+          type: 'error',
+          text1: 'Accès refusé',
+          text2: 'Vous devez être un fournisseur pour accéder à cette page.',
+        });
+        navigation.navigate('Login');
+        return;
+      }
+
+      setUserData({
+        ...data,
+        phone: data.telephone || ''
+      });
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: 'Échec du chargement des informations utilisateur.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/update`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to update user data: ${errorText}`);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Succès',
+        text2: 'Informations mises à jour avec succès!',
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating user data:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: `Échec de la mise à jour: ${error.message}`,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const infoItems = [
     {
@@ -58,16 +132,15 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
     }
   ];
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" color="#708238" />
-        <Text style={styles.loadingText}>Chargement des informations du compte...</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
 
-  if (!user && !isLoading) {
+  if (!user && !loading) {
     return (
       <View style={styles.centeredContainer}>
         <Text style={styles.errorText}>Impossible de charger les informations de l'utilisateur. Veuillez vous connecter.</Text>
@@ -80,15 +153,15 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <SupplierTopBar 
-        title="Informations du compte" 
-        onSettingsPress={() => navigation.goBack()}
+      <SupplierTopBar
+        title="Informations du Compte"
         onGoBack={() => navigation.goBack()}
         iconName="profile"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
-      
-      <ScrollView style={styles.content}>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarPlaceholder}>
             <Text style={styles.avatarText}>
@@ -127,7 +200,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f3f4f6',
   },
-  content: {
+  scrollContent: {
     flex: 1,
   },
   profileHeader: {
@@ -219,16 +292,11 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
   },
-  centeredContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f3f4f6',
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: '#666',
   },
   errorText: {
     fontSize: 18,
@@ -245,6 +313,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
 });
 

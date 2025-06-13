@@ -6,14 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   Linking,
+  StyleSheet,
 } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const BuysScreen = ({ navigation, route }) => {
+  const { unreadNotificationsCount } = useAuth();
   const [achats, setAchats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -54,8 +57,11 @@ const BuysScreen = ({ navigation, route }) => {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Achats"
-        active="BuysScreen"
+        activeLeftIcon="BuysScreen"
         onGoBack={() => navigation.goBack()}
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
 
       <Text
