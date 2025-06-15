@@ -108,17 +108,11 @@ const AllActivitiesScreen = ({ navigation }) => {
   const renderActivityItem = ({ item }) => (
     <View style={styles.activityItem}>
       <View style={styles.activityTypeContainer}>
-        {item.type === 'achat' ? (
-          <ArrowRightCircle size={20} color="#4CAF50" /> // Green for Achat
-        ) : (
-          <ArrowLeftCircle size={20} color="#F44336" /> // Red for Vente
-        )}
-        <Text style={styles.activityDescription}>{item.type}</Text>
+        {item.type === 'achat' ? (<ArrowRightCircle size={20} color="#4CAF50" />) : (<ArrowLeftCircle size={20} color="#F44336" />)}
+        <Text style={styles.activityDescription}>{String(item.type || '')}</Text>
       </View>
-      <View style={styles.verticalDivider} /> {/* Vertical Divider */}
-      <Text style={styles.activityAmount}>{item.amount}</Text>
-      <View style={styles.verticalDivider} /> {/* Vertical Divider */}
-      <Text style={styles.activityDate}>{item.date}</Text>
+      <View style={styles.verticalDivider} /><Text style={styles.activityAmount}>{String(item.amount || '')}</Text>
+      <View style={styles.verticalDivider} /><Text style={styles.activityDate}>{String(item.date || '')}</Text>
     </View>
   );
 
@@ -137,7 +131,7 @@ const AllActivitiesScreen = ({ navigation }) => {
         onGoBack={() => navigation.goBack()}
         activeLeftIcon="home" // Or a more suitable icon if you have one for activities
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
-        notificationCount={unreadNotificationsCount}
+        notificationCount={String(unreadNotificationsCount || '')}
         onSettingsPress={() => navigation.navigate('Settings')}
       />
 
@@ -163,7 +157,7 @@ const AllActivitiesScreen = ({ navigation }) => {
             <Text style={styles.filterLabel}>Date:</Text>
             <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePickerButton}>
               <Text style={styles.datePickerButtonText}>
-                {selectedDate ? selectedDate.toLocaleDateString() : 'Select Date'}
+                {selectedDate ? String(selectedDate.toLocaleDateString()) : 'Select Date'}
               </Text>
             </TouchableOpacity>
             {showDatePicker && (

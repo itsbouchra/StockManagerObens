@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -33,6 +35,8 @@ import com.stock.stockmanager.repository.VenteRepository;
 
 public class VenteController {
 
+    private static final Logger logger = LoggerFactory.getLogger(VenteController.class);
+
     @Autowired
     private VenteRepository venteRepository;
 
@@ -50,59 +54,61 @@ public class VenteController {
     }
 
     @PostMapping
-public ResponseEntity<?> addVente(@RequestBody VenteDTO venteDTO) {
-    try {
-        System.out.println("Début traitement vente...");
-        Vente vente = new Vente();
+    public ResponseEntity<?> addVente(@RequestBody VenteDTO venteDTO) {
+        try {
+            System.out.println("Début traitement vente...");
+            Vente vente = new Vente();
 
-        System.out.println("Date : " + venteDTO.getDateVente());
-        vente.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
+            System.out.println("Date : " + venteDTO.getDateVente());
+            vente.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
 
-        System.out.println("Montant total : " + venteDTO.getMontantTotal());
-        vente.setMontantTotal(venteDTO.getMontantTotal());
+            System.out.println("Montant total : " + venteDTO.getMontantTotal());
+            vente.setMontantTotal(venteDTO.getMontantTotal());
 
-        System.out.println("Statut : " + venteDTO.getStatut());
-        vente.setStatut(venteDTO.getStatut());
+            System.out.println("Statut : " + venteDTO.getStatut());
+            vente.setStatut(venteDTO.getStatut());
 
-        System.out.println("Client ID : " + venteDTO.getIdClient());
-        User client = userRepository.findById(venteDTO.getIdClient())
-            .orElseThrow(() -> new RuntimeException("Client non trouvé"));
-        vente.setClient(client);
+            System.out.println("Client ID : " + venteDTO.getIdClient());
+            User client = userRepository.findById(venteDTO.getIdClient())
+                .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+            vente.setClient(client);
 
-        List<LigneVente> lignes = new ArrayList<>();
-        if (venteDTO.getLignes() != null) {
-            for (LigneVenteDTO l : venteDTO.getLignes()) {
-                System.out.println("Produit ID : " + l.getIdProduit());
-                if (l.getIdProduit() == null) {
-                    throw new RuntimeException("idProduit manquant dans une ligne de vente");
+            List<LigneVente> lignes = new ArrayList<>();
+            if (venteDTO.getLignes() != null) {
+                for (LigneVenteDTO l : venteDTO.getLignes()) {
+                    System.out.println("Produit ID : " + l.getIdProduit());
+                    if (l.getIdProduit() == null) {
+                        throw new RuntimeException("idProduit manquant dans une ligne de vente");
+                    }
+
+                    Produit produit = produitRepository.findById(l.getIdProduit())
+                            .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+
+                    LigneVente ligne = new LigneVente();
+                    ligne.setVente(vente);
+                    ligne.setProduit(produit);
+                    ligne.setQuantite(l.getQuantite());
+                    ligne.setPrix(l.getPrix());
+                    ligne.setTotal(l.getTotal());
+
+                    lignes.add(ligne);
                 }
-
-                Produit produit = produitRepository.findById(l.getIdProduit())
-                        .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-
-                LigneVente ligne = new LigneVente();
-                ligne.setVente(vente);
-                ligne.setProduit(produit);
-                ligne.setQuantite(l.getQuantite());
-                ligne.setPrix(l.getPrix());
-                ligne.setTotal(l.getTotal());
-
-                lignes.add(ligne);
             }
+
+            vente.setLignes(lignes);
+            venteRepository.save(vente);
+
+            System.out.println("Vente enregistrée avec succès !");
+            return ResponseEntity.ok("Vente enregistrée avec succès");
+
+        } catch (RuntimeException e) {
+            logger.error("Error processing vente: ", e);
+            return ResponseEntity.status(500).body("Erreur serveur : " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error processing vente: ", e);
+            return ResponseEntity.status(500).body("Erreur serveur inattendue");
         }
-
-        vente.setLignes(lignes);
-        venteRepository.save(vente);
-
-        System.out.println("Vente enregistrée avec succès !");
-        return ResponseEntity.ok("Vente enregistrée avec succès");
-
-    } catch (Exception e) {
-        e.printStackTrace(); // 👈 très important !
-        return ResponseEntity.status(500).body("Erreur serveur : " + e.getMessage());
     }
-}
-
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getVenteById(@PathVariable Integer id) {
@@ -111,34 +117,36 @@ public ResponseEntity<?> addVente(@RequestBody VenteDTO venteDTO) {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-  @DeleteMapping("/{id}")
-public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
-    try {
-        return venteRepository.findById(id).map(vente -> {
-            // Nettoyer les lignes associées
-            if (vente.getLignes() != null) {
-                vente.getLignes().clear();
-            }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
+        try {
+            return venteRepository.findById(id).map(vente -> {
+                // Nettoyer les lignes associées
+                if (vente.getLignes() != null) {
+                    vente.getLignes().clear();
+                }
 
-            // Nettoyer les livraisons associées
-            if (vente.getLivraisons() != null) {
-                vente.getLivraisons().clear();
-            }
+                // Nettoyer les livraisons associées
+                if (vente.getLivraisons() != null) {
+                    vente.getLivraisons().clear();
+                }
 
-            // Sauvegarder les relations nettoyées
-            venteRepository.save(vente);
+                // Sauvegarder les relations nettoyées
+                venteRepository.save(vente);
 
-            // Supprimer la vente elle-même
-            venteRepository.delete(vente);
+                // Supprimer la vente elle-même
+                venteRepository.delete(vente);
 
-            return ResponseEntity.ok("Vente supprimée avec succès");
-        }).orElse(ResponseEntity.status(404).body("Vente introuvable"));
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.status(500).body("Erreur lors de la suppression : " + e.getMessage());
+                return ResponseEntity.ok("Vente supprimée avec succès");
+            }).orElse(ResponseEntity.status(404).body("Vente introuvable"));
+        } catch (RuntimeException e) {
+            logger.error("Error deleting vente: ", e);
+            return ResponseEntity.status(500).body("Erreur lors de la suppression : " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Unexpected error deleting vente: ", e);
+            return ResponseEntity.status(500).body("Erreur serveur inattendue");
+        }
     }
-}
-
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVente(@PathVariable Integer id, @RequestBody VenteDTO venteDTO) {

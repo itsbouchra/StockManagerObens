@@ -46,6 +46,20 @@ public class ProduitController {
         return produits.stream().map(this::convertToDTO).collect(Collectors.toList());
     }
 
+    @GetMapping("/out-of-stock")
+    public ResponseEntity<List<Produit>> getOutOfStockProducts() {
+        List<Integer> outOfStockProductIds = produitRepository.findOutOfStockProductIds();
+        List<Produit> outOfStockProducts = produitRepository.findAllById(outOfStockProductIds);
+        return ResponseEntity.ok(outOfStockProducts);
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<Produit>> getLowStockProducts() {
+        List<Integer> lowStockProductIds = produitRepository.findLowStockProductIds();
+        List<Produit> lowStockProducts = produitRepository.findAllById(lowStockProductIds);
+        return ResponseEntity.ok(lowStockProducts);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProduitDTO> getProduitById(@PathVariable Integer id) {
         Optional<Produit> produitOpt = produitRepository.findById(id);
@@ -94,37 +108,33 @@ public class ProduitController {
         }
         return dto;
     }
-@DeleteMapping("/{id}")
-public ResponseEntity<?> deleteProduit(@PathVariable Integer id) {
-    if (!produitRepository.existsById(id)) {
-       
-        return ResponseEntity.notFound().build();
-    }
-    produitRepository.deleteById(id);
-    return ResponseEntity.ok().build();
-}
 
-
-@PostMapping("/add")
-public ResponseEntity<ProduitDTO> addProduit(@RequestBody ProduitDTO produitDTO) {
-    Produit produit = new Produit();
-    produit.setNom(produitDTO.getNom());
-    produit.setDescription(produitDTO.getDescription());
-    produit.setPrix(produitDTO.getPrix());
-    produit.setPhoto(produitDTO.getPhoto());
-    produit.setUnit(produitDTO.getUnit());
-    produit.setStockMin(produitDTO.getStockMin());
-
-    if (produitDTO.getCategorieId() != null) {
-        categorieRepository.findById(produitDTO.getCategorieId())
-            .ifPresent(produit::setCategorie);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduit(@PathVariable Integer id) {
+        if (!produitRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        produitRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 
-    Produit savedProduit = produitRepository.save(produit);
+    @PostMapping("/add")
+    public ResponseEntity<ProduitDTO> addProduit(@RequestBody ProduitDTO produitDTO) {
+        Produit produit = new Produit();
+        produit.setNom(produitDTO.getNom());
+        produit.setDescription(produitDTO.getDescription());
+        produit.setPrix(produitDTO.getPrix());
+        produit.setPhoto(produitDTO.getPhoto());
+        produit.setUnit(produitDTO.getUnit());
+        produit.setStockMin(produitDTO.getStockMin());
 
-    return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedProduit));
-} 
+        if (produitDTO.getCategorieId() != null) {
+            categorieRepository.findById(produitDTO.getCategorieId())
+                .ifPresent(produit::setCategorie);
+        }
 
+        Produit savedProduit = produitRepository.save(produit);
 
-    
+        return ResponseEntity.status(HttpStatus.CREATED).body(convertToDTO(savedProduit));
+    }
 }

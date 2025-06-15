@@ -208,7 +208,7 @@ const BuysScreen = ({ navigation, route }) => {
                   }}
                   onPress={() => navigation.navigate('EditAchatScreen', { idAchat: item.idAchat })}
                 >
-                  <Text style={{ fontSize: 26, color: '#0ea5e9' }}>✏️</Text>
+                  <Text style={{ fontSize: 26, color: '#0ea5e9' }}>{'\u270f\ufe0f'}</Text>
                 </TouchableOpacity>
                 {/* Delete Button */}
                 <TouchableOpacity
@@ -233,7 +233,7 @@ const BuysScreen = ({ navigation, route }) => {
                     setShowDeleteModal(true);
                   }}
                 >
-                  <Text style={{ fontSize: 26, color: '#dc2626' }}>🗑️</Text>
+                  <Text style={{ fontSize: 26, color: '#dc2626' }}>{'\ud83d\uddd1\ufe0f'}</Text>
                 </TouchableOpacity>
                 {/* Print Button */}
                 <TouchableOpacity

@@ -108,34 +108,42 @@ const SupplierDashboardScreen = ({ navigation }) => {
           <ActivityIndicator size="large" color={PRIMARY_COLOR} style={styles.loadingIndicator} />
         ) : (
           <View style={styles.statsContainer}>
-            <StatCard
-              label="Ventes totales"
-              value={stats.totalSells.toString()}
-              bgColor={PRIMARY_COLOR}
-              iconName="dollar-sign"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons conformes"
-              value={stats.conformeDeliveries.toString()}
-              bgColor={LIGHT_GREEN}
-              iconName="check-circle"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons non conformes"
-              value={stats.nonConformeDeliveries.toString()}
-              bgColor={DARK_GRAY}
-              iconName="x-circle"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons semi-conformes"
-              value={stats.semiConformeDeliveries.toString()}
-              bgColor={ACCENT_COLOR}
-              iconName="alert-circle"
-              style={styles.statCard}
-            />
+            <React.Fragment>
+              <StatCard
+                label="Ventes totales"
+                value={stats.totalSells.toString()}
+                bgColor={PRIMARY_COLOR}
+                iconName="dollar-sign"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons conformes"
+                value={stats.conformeDeliveries.toString()}
+                bgColor={LIGHT_GREEN}
+                iconName="check-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons non conformes"
+                value={stats.nonConformeDeliveries.toString()}
+                bgColor={DARK_GRAY}
+                iconName="x-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons semi-conformes"
+                value={stats.semiConformeDeliveries.toString()}
+                bgColor={ACCENT_COLOR}
+                iconName="alert-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
           </View>
         )}
 

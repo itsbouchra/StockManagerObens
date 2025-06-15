@@ -10,34 +10,43 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0);
+  const [token, setToken] = useState(null);
 
   const fetchUnreadNotificationsCount = async (userRole, userId) => {
-    if (!userId || !userRole) return;
+    if (!userId || !userRole) {
+      console.log('AuthContext: fetchUnreadNotificationsCount received invalid userId or userRole. Current user role:', userRole, 'Current user ID:', userId);
+      return;
+    }
     try {
-      // Fetch all notifications for the user (both sent and received)
+      console.log('AuthContext: Attempting to fetch notifications for role:', userRole.toUpperCase(), 'and userId:', userId);
       const response = await fetch(`${BASE_URL}/notifications/user/${userRole.toUpperCase()}/${userId}`);
       if (response.ok) {
         const allNotifications = await response.json();
+        console.log('AuthContext: Fetched allNotifications for', userRole.toUpperCase(), userId, ':', allNotifications);
 
-        // Filter and count notifications based on the new logic
         let count = 0;
         allNotifications.forEach(item => {
           const isReceived = item.recipientRole.toUpperCase() === userRole.toUpperCase();
           const isSent = item.senderRole.toUpperCase() === userRole.toUpperCase();
 
           if (isReceived && !item.read_status) {
-            // Unread received messages
+            // Count unread received messages
             count++;
           } else if (isSent && item.recipientRole.toUpperCase() === 'ADMIN' && item.read_status) {
-            // Sent messages to Admin that have been read
+            // Count messages sent by current user to ADMIN that have been read
             count++;
+          } else if (userRole.toUpperCase() === 'ADMIN' && item.recipientRole.toUpperCase() === 'ADMIN' && item.read_status) {
+              // Special case for admin: count read messages received by admin too, if they are from a supplier or client
+              if (item.senderRole.toUpperCase() === 'FOURNISSEUR' || item.senderRole.toUpperCase() === 'CLIENT') {
+                  count++;
+              }
           }
         });
 
-        console.log('AuthContext: calculated unread notifications count for', userRole, userId, ':', count);
+        console.log('AuthContext: calculated unread notifications count for', userRole.toUpperCase(), userId, ':', count);
         setUnreadNotificationsCount(count);
       } else {
-        console.error(`AuthContext: Failed to fetch all notifications for count: ${response.status}`);
+        console.error(`AuthContext: Failed to fetch all notifications for count. Status: ${response.status}, Status Text: ${response.statusText}`);
       }
     } catch (error) {
       console.error('AuthContext: Error fetching and calculating unread notifications count:', error);
@@ -54,28 +63,32 @@ export const AuthProvider = ({ children }) => {
         if (storedUser) {
           const userData = JSON.parse(storedUser);
           console.log('AuthContext: Parsed user data from AsyncStorage (pre-fetch):', userData);
-          console.log('AuthContext: Role from AsyncStorage:', userData.role);
+          console.log('AuthContext: User role from AsyncStorage:', userData.role, 'User ID from AsyncStorage:', userData.id_user);
 
-          // Fetch full user data from backend using the ID from stored data
+          const storedToken = await AsyncStorage.getItem('token');
+          if (storedToken) {
+            setToken(storedToken);
+            console.log('AuthContext: Token loaded from AsyncStorage.');
+          }
+
           const userProfileUrl = `${BASE_URL}/users/${userData.id_user}`;
           console.log('AuthContext: Fetching full user profile from:', userProfileUrl);
           const response = await fetch(userProfileUrl);
-          console.log('AuthContext: User profile fetch response status:', response.status);
+          console.log('AuthContext: User profile fetch response status:', response.status, 'Status Text:', response.statusText);
 
           if (response.ok) {
             const fetchedUser = await response.json();
             console.log('AuthContext: Fetched user data successfully (post-fetch):', fetchedUser);
-            console.log('AuthContext: Role fetched from API:', fetchedUser.role);
+            console.log('AuthContext: Fetched user role:', fetchedUser.role, 'Fetched user ID:', fetchedUser.id_user);
             setUser(fetchedUser);
-            // Pass the user's role to fetchUnreadNotificationsCount
-            console.log('AuthContext: Calling fetchUnreadNotificationsCount with role:', fetchedUser.role, 'and userId:', fetchedUser.id_user);
+            console.log('AuthContext: Calling fetchUnreadNotificationsCount from loadUser with role:', fetchedUser.role, 'and userId:', fetchedUser.id_user);
             fetchUnreadNotificationsCount(fetchedUser.role, fetchedUser.id_user); 
           } else {
-            console.error('AuthContext: Failed to fetch user profile (response not ok):', response.status);
+            console.error('AuthContext: Failed to fetch user profile. Status:', response.status, 'Status Text:', response.statusText);
             await AsyncStorage.removeItem('userData');
           }
         } else {
-          console.log('AuthContext: No user found in AsyncStorage.');
+          console.log('AuthContext: No user data found in AsyncStorage.');
         }
       } catch (error) {
         console.error('AuthContext: Error loading user from storage or API (catch block):', error);
@@ -99,23 +112,32 @@ export const AuthProvider = ({ children }) => {
         },
         body: JSON.stringify({ username, password }),
       });
-      console.log('AuthContext: Login API call response status:', response.status);
+      console.log('AuthContext: Login API call response status:', response.status, 'Status Text:', response.statusText);
 
       if (response.ok) {
-        const userData = await response.json();
-        console.log('AuthContext: Login successful, received user data (pre-set):', userData);
-        console.log('AuthContext: Role from login response:', userData.role);
+        const responseData = await response.json();
+        const userData = responseData.user;
+        const token = responseData.token;
+
+        console.log('AuthContext: Login successful, received user data:', userData);
+        console.log('AuthContext: Login user role:', userData.role, 'Login user ID:', userData.id_user);
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
+        
+        if (token) {
+          await AsyncStorage.setItem('token', token);
+          setToken(token);
+          console.log('AuthContext: Token saved to AsyncStorage and set in state.');
+        }
+
         setUser(userData);
-        // Pass the user's role to fetchUnreadNotificationsCount
-        console.log('AuthContext: Calling fetchUnreadNotificationsCount with role (from login):', userData.role, 'and userId:', userData.id_user);
+        console.log('AuthContext: Calling fetchUnreadNotificationsCount from login with role:', userData.role, 'and userId:', userData.id_user);
         fetchUnreadNotificationsCount(userData.role, userData.id_user); 
         console.log('AuthContext: User data set in state and AsyncStorage.');
         return { success: true };
       } else {
-        const errorData = await response.text();
-        console.error('AuthContext: Login failed (response not ok):', response.status, errorData);
-        return { success: false, message: errorData || 'Identifiants invalides' };
+        const errorText = await response.text();
+        console.error('AuthContext: Login failed. Status:', response.status, 'Error:', errorText);
+        return { success: false, message: errorText || 'Identifiants invalides' };
       }
     } catch (error) {
       console.error('AuthContext: Login error (catch block):', error);
@@ -129,7 +151,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('userData');
+      await AsyncStorage.removeItem('token');
       setUser(null);
+      setToken(null);
       setUnreadNotificationsCount(0); // Reset count on logout
       console.log('AuthContext: User logged out');
     } catch (error) {
@@ -138,7 +162,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, logout, isLoading, login, unreadNotificationsCount, fetchUnreadNotificationsCount }}>
+    <AuthContext.Provider value={{ user, logout, isLoading, login, unreadNotificationsCount, fetchUnreadNotificationsCount, token }}>
       {children}
     </AuthContext.Provider>
   );

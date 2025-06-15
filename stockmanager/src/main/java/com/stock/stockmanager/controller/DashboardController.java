@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,8 @@ import com.stock.stockmanager.dto.DashboardSummaryDTO;
 @RequestMapping("/api/dashboard")
 public class DashboardController {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(DashboardController.class);
+
     @Autowired
     private ProduitRepository produitRepository;
 
@@ -29,8 +33,8 @@ public class DashboardController {
     public ResponseEntity<DashboardSummaryDTO> getDashboardSummary() {
         DashboardSummaryDTO dashboardSummaryDTO = new DashboardSummaryDTO();
         dashboardSummaryDTO.setTotalProducts(produitRepository.countAllProduits());
-        dashboardSummaryDTO.setOutOfStock(produitRepository.countOutOfStock());
-        dashboardSummaryDTO.setLowStock(produitRepository.countLowStock());
+        dashboardSummaryDTO.setOutOfStock(produitRepository.findOutOfStockProductIds().size());
+        dashboardSummaryDTO.setLowStock(produitRepository.findLowStockProductIds().size());
 
         dashboardSummaryDTO.setRecentActivityCount(activityService.getAllRecentActivities().size());
         dashboardSummaryDTO.setActivities(activityService.getTop4RecentActivities());
@@ -49,5 +53,29 @@ public class DashboardController {
         }
 
         return distribution;
+    }
+
+    @GetMapping("/out-of-stock")
+    public ResponseEntity<List<Produit>> getOutOfStockProducts() {
+        try {
+            List<Integer> outOfStockIds = produitRepository.findOutOfStockProductIds();
+            List<Produit> outOfStockProducts = produitRepository.findAllById(outOfStockIds);
+            return ResponseEntity.ok(outOfStockProducts);
+        } catch (Exception e) {
+            LOGGER.error("Error fetching out of stock products", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/low-stock")
+    public ResponseEntity<List<Produit>> getLowStockProducts() {
+        try {
+            List<Integer> lowStockIds = produitRepository.findLowStockProductIds();
+            List<Produit> lowStockProducts = produitRepository.findAllById(lowStockIds);
+            return ResponseEntity.ok(lowStockProducts);
+        } catch (Exception e) {
+            LOGGER.error("Error fetching low stock products", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

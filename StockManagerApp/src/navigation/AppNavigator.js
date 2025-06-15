@@ -33,6 +33,7 @@ import ReceptionListScreen from '../screens/ReceptionListScreen';
 import PdfViewerScreen from '../screens/PdfViewerScreen';
 import ProductReceptionScreen from '../screens/ProductReceptionScreen';
 import AllActivitiesScreen from '../screens/AllActivitiesScreen';
+import OutOfStockScreen from '../screens/OutOfStockScreen';
 
 // Import new supplier screens
 import SupplierDashboardScreen from '../screens/SupplierDashboardScreen';
@@ -70,6 +71,7 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen name="Dashboard" component={DashboardWithNavbar} options={{ headerShown: false }} />
+        <Stack.Screen name="OutOfStockScreen" component={OutOfStockScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Categorie" component={CategorieScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProduitScreen" component={ProduitScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProductAD" component={ProductAD} options={{ headerShown: false }} />

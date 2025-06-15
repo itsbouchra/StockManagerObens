@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -168,20 +167,20 @@ export default function SalesListScreen({ navigation, route }) {
                 style={{ backgroundColor: '#e0f2fe', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#38bdf8' }}
                 onPress={() => navigation.navigate('EditVenteScreen', { idVente: item.id })}
               >
-                <Text style={{ fontSize: 26, color: '#0ea5e9' }}>✏️</Text>
+                <Text style={{ fontSize: 26, color: '#0ea5e9' }}>{'\u270f\ufe0f'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={{ backgroundColor: '#fee2e2', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#ef4444' }}
                 onPress={() => deleteVente(item.id)}
               >
-                <Text style={{ fontSize: 26, color: '#dc2626' }}>🗑️</Text>
+                <Text style={{ fontSize: 26, color: '#dc2626' }}>{'\ud83d\uddd1\ufe0f'}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={{ backgroundColor: '#fef9c3', borderRadius: 22, width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#eab308', shadowColor: '#eab308', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 6, elevation: 4 }}
               >
-                <Text style={{ fontSize: 26, color: '#b45309' }}>🖨️</Text>
+                <Text style={{ fontSize: 26, color: '#b45309' }}>{'\ud83d\udda8\ufe0f'}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -12,11 +12,12 @@ import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import { useAuth } from '../context/AuthContext';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const API_BASE_URL = 'http://10.0.2.2:8080/api';
 
 const SupplierAccountInfoScreen = ({ navigation }) => {
-  const { user, unreadNotificationsCount, fetchUnreadNotificationsCount } = useAuth();
+  const { user, unreadNotificationsCount, fetchUnreadNotificationsCount, token, isLoading: authLoading } = useAuth();
   const [userData, setUserData] = useState({
     username: '',
     email: '',
@@ -24,72 +25,121 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
     role: 'fournisseur'
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Manage local loading state
 
   useEffect(() => {
-    if (user && user.id_user) {
-      console.log('SupplierAccountInfoScreen: User from useAuth:', user);
-      console.log('SupplierAccountInfoScreen: User role from useAuth:', user.role);
-      fetchUserData();
-      fetchUnreadNotificationsCount(user.role.toUpperCase(), user.id_user);
-    }
-  }, [user]);
+    // Only proceed if AuthContext has finished loading and user is available
+    if (!authLoading && user) {
+      const loadUserData = async () => {
+        try {
+          setLoading(true);
+          // Temporarily remove Authorization header for testing, as backend might not issue tokens.
+          // A proper long-term solution requires backend token implementation.
+          const response = await fetch(`${API_BASE_URL}/users/${user.id_user}`);
+          
+          if (!response.ok) {
+            // Attempt to parse error as JSON, fallback to text
+            const errorData = await response.json().catch(() => null);
+            const errorMessage = errorData?.message || response.statusText || 'Failed to fetch user data';
+            throw new Error(errorMessage);
+          }
 
-  const fetchUserData = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/users/${user.id_user}`);
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(`Échec du chargement des données utilisateur. Statut: ${response.status}, Corps:`, errorBody);
-        throw new Error('Failed to fetch user data');
-      }
-      const data = await response.json();
-      console.log('SupplierAccountInfoScreen: Fetched user data from API:', data);
-      console.log('SupplierAccountInfoScreen: Role fetched from API:', data.role);
-      
-      // Vérifier si l'utilisateur est un fournisseur
-      if (!data.role || data.role.toLowerCase().trim() !== 'fournisseur') {
-        Toast.show({
-          type: 'error',
-          text1: 'Accès refusé',
-          text2: 'Vous devez être un fournisseur pour accéder à cette page.',
-        });
-        navigation.navigate('Login');
-        return;
-      }
+          const data = await response.json();
+          
+          setUserData({
+            username: data.username || '',
+            email: data.email || '',
+            phone: data.telephone || '',
+            role: data.role || 'fournisseur'
+          });
 
-      setUserData({
-        ...data,
-        phone: data.telephone || ''
-      });
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erreur',
-        text2: 'Échec du chargement des informations utilisateur.',
-      });
-    } finally {
-      setLoading(false);
+          await fetchUnreadNotificationsCount(data.role, data.id_user);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur',
+            text2: `Échec du chargement: ${error.message}`,
+          });
+          // If there's an authentication error (e.g., 401 Unauthorized), navigate to Login
+          if (error.message.includes('Unauthorized') || error.message.includes('Failed to fetch user data')) { // Adjust condition based on actual error messages if needed
+            navigation.navigate('Login');
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadUserData();
+    } else if (!authLoading && !user) {
+      // If authLoading is false but no user, navigate to login
+      console.log('SupplierAccountInfoScreen: AuthContext finished loading, but no user. Navigating to Login.');
+      navigation.navigate('Login');
     }
-  };
+    // Initial screen loading state should reflect authLoading
+    setLoading(authLoading);
+  }, [user, navigation, authLoading]); // Removed 'token' from dependency array for this test
 
   const handleUpdate = async () => {
     setLoading(true);
     try {
+      // Validate required fields
+      if (!userData.username || !userData.email || !userData.phone) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: 'Veuillez remplir tous les champs obligatoires',
+        });
+        return;
+      }
+
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userData.email)) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: 'Format d\'email invalide',
+        });
+        return;
+      }
+
+      // Validate phone format (basic validation for French numbers)
+      const phoneRegex = /^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$/;
+      if (!phoneRegex.test(userData.phone)) {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: 'Format de numéro de téléphone invalide',
+        });
+        return;
+      }
+
+      // Temporarily remove Authorization header for testing update, as backend might not issue tokens.
+      // A proper long-term solution requires backend token implementation.
       const response = await fetch(`${API_BASE_URL}/users/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          ...userData,
+          id_user: user.id_user,
+        }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update user data: ${errorText}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Échec de la mise à jour');
       }
+
+      const updatedData = await response.json();
+      
+      // Update local state with new data
+      setUserData(prevData => ({
+        ...prevData,
+        ...updatedData
+      }));
 
       Toast.show({
         type: 'success',
@@ -102,11 +152,28 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
       Toast.show({
         type: 'error',
         text1: 'Erreur',
-        text2: `Échec de la mise à jour: ${error.message}`,
+        text2: error.message || 'Échec de la mise à jour des informations',
       });
     } finally {
       setLoading(false);
     }
+  };
+
+  // Add a function to handle input changes
+  const handleInputChange = (field, value) => {
+    setUserData(prevData => ({
+      ...prevData,
+      [field]: value
+    }));
+  };
+
+  // Add a function to handle edit mode
+  const toggleEditMode = () => {
+    if (isEditing) {
+      // If canceling edit, reload original data
+      loadUserData();
+    }
+    setIsEditing(!isEditing);
   };
 
   const infoItems = [
@@ -132,7 +199,8 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
     }
   ];
 
-  if (loading) {
+  // Combine local loading state with authLoading for overall screen loading
+  if (loading || authLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -140,7 +208,8 @@ const SupplierAccountInfoScreen = ({ navigation }) => {
     );
   }
 
-  if (!user && !loading) {
+  // If authLoading is false and no user is found, navigate to login or show appropriate message
+  if (!user && !authLoading) {
     return (
       <View style={styles.centeredContainer}>
         <Text style={styles.errorText}>Impossible de charger les informations de l'utilisateur. Veuillez vous connecter.</Text>

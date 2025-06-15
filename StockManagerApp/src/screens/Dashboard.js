@@ -24,7 +24,6 @@ const Dashboard = ({ navigation }) => {
         const summary = await summaryRes.json();
         const distribution = await distRes.json();
 
-        // Transform activities data to match the AllActivitiesScreen format
         const transformedActivities = summary.activities.map(activity => {
           const [year, month, day] = activity.date.split('-');
           const formattedDate = `${day}/${month}/${year}`;
@@ -48,7 +47,7 @@ const Dashboard = ({ navigation }) => {
 
         setDashboardData({
           ...summary,
-          activities: transformedActivities.slice(0, 3), // Still take only the last 3
+          activities: transformedActivities.slice(0, 3),
           distribution: transformedDistribution,
         });
       } catch (err) {
@@ -97,25 +96,26 @@ const Dashboard = ({ navigation }) => {
     {
       label: 'Products',
       value: dashboardData.totalProducts ?? 0,
-      bgColor: '#E1B12C', // gold
+      bgColor: '#E1B12C',
       iconName: 'package',
     },
     {
       label: 'Out of Stock',
       value: dashboardData.outOfStock ?? 0,
-      bgColor: '#A6C34B', // greenish
+      bgColor: '#A6C34B',
       iconName: 'alert-circle',
+      onPress: () => navigation.navigate('OutOfStockScreen'),
     },
     {
       label: 'Low Stock',
       value: dashboardData.lowStock ?? 0,
-      bgColor: '#4A4A4A', // dark gray
-      iconName: 'arrow-down-circle',
+      bgColor: '#4A4A4A',
+      iconName: 'arrow-down-circle'
     },
     {
       label: 'Recent Activity',
       value: dashboardData.recentActivityCount ?? 0,
-      bgColor: '#A8BDA0', // light greenish-gray
+      bgColor: '#A8BDA0',
       iconName: 'history',
     },
   ];
@@ -124,17 +124,11 @@ const Dashboard = ({ navigation }) => {
     return (
       <View style={styles.activityItem}>
         <View style={styles.activityTypeContainer}>
-          {item.type === 'achat' ? (
-            <ArrowRightCircle size={20} color="#4CAF50" />
-          ) : (
-            <ArrowLeftCircle size={20} color="#F44336" />
-          )}
+          {item.type === 'achat' ? (<ArrowRightCircle size={20} color="#4CAF50" />) : (<ArrowLeftCircle size={20} color="#F44336" />)}
           <Text style={styles.activityDescription}>{item.type}</Text>
         </View>
-        <View style={styles.verticalDivider} />
-        <Text style={styles.activityAmount}>{item.amount}</Text>
-        <View style={styles.verticalDivider} />
-        <Text style={styles.activityDate}>{item.date}</Text>
+        <View style={styles.verticalDivider} /><Text style={styles.activityAmount}>{item.amount}</Text>
+        <View style={styles.verticalDivider} /><Text style={styles.activityDate}>{item.date}</Text>
       </View>
     );
   };
@@ -149,71 +143,52 @@ const Dashboard = ({ navigation }) => {
         notificationCount={unreadNotificationsCount}
         onSettingsPress={() => navigation.navigate('Settings')}
       />
-
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 20 }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            justifyContent: 'space-between',
-            padding: 13,
-          }}
-        >
-          {cardsData.map(({ label, value, bgColor, iconName, onPress }) => (
-            <StatCard
-              key={label}
-              label={label}
-              value={value}
-              bgColor={bgColor}
-              iconName={iconName}
-              style={{ width: '48%', marginBottom: 13, height: 95 }}
-              onPress={onPress}
+      <ScrollView>
+        <View><View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between',
+              padding: 13,
+            }}
+          >{cardsData.map(({ label, value, bgColor, iconName, onPress }) => (<React.Fragment key={label}><StatCard label={label} value={value} bgColor={bgColor} iconName={iconName} style={{ width: '48%', marginBottom: 13, height: 95 }} onPress={onPress} /></React.Fragment>))}</View><View><TouchableOpacity
+            style={styles.recentActivityBox}
+            onPress={() => navigation.navigate('AllActivitiesScreen')}
+          ><Text style={styles.recentActivityTitle}>Recent activity</Text>
+            <FlatList
+              data={dashboardData.activities}
+              keyExtractor={(item, index) =>
+                item?.id ? item.id.toString() : index.toString()
+              }
+              renderItem={renderActivityItem}
+              scrollEnabled={false}
+              contentContainerStyle={{ paddingBottom: 0 }}
             />
-          ))}
-        </View>
-
-        <TouchableOpacity
-          style={styles.recentActivityBox}
-          onPress={() => navigation.navigate('AllActivitiesScreen')}
-        >
-          <Text style={styles.recentActivityTitle}>Recent activity</Text>
-          <FlatList
-            data={dashboardData.activities}
-            keyExtractor={(item, index) =>
-              item?.id ? item.id.toString() : index.toString()
-            }
-            renderItem={renderActivityItem}
-            scrollEnabled={false}
-            contentContainerStyle={{ paddingBottom: 0 }}
-          />
-        </TouchableOpacity>
-
-        <Text
-          style={{
-            fontSize: 20,
-            fontWeight: 'bold',
-            marginLeft: 16,
-            marginBottom: 8,
-          }}
-        >
-          Distribution des Produits
-        </Text>
-        <View
-          style={{
-            backgroundColor: '#ffffff',
-            padding: 15,
-            borderRadius: 10,
-            marginHorizontal: 16,
-            marginBottom: 80,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.2,
-            shadowRadius: 1.41,
-            elevation: 2,
-          }}
-        >
-          <PieChartSection distributionData={dashboardData.distribution} />
-        </View>
+          </TouchableOpacity></View><View><Text
+            style={{
+              fontSize: 20,
+              fontWeight: 'bold',
+              marginLeft: 16,
+              marginBottom: 8,
+            }}
+          >
+            Distribution des Produits
+          </Text><View
+            style={{
+              backgroundColor: '#ffffff',
+              padding: 15,
+              borderRadius: 10,
+              marginHorizontal: 16,
+              marginBottom: 80,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.2,
+              shadowRadius: 1.41,
+              elevation: 2,
+            }}
+          >
+            <PieChartSection distributionData={dashboardData.distribution} />
+          </View></View></View>
       </ScrollView>
     </View>
   );
@@ -221,7 +196,7 @@ const Dashboard = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   recentActivityBox: {
-    backgroundColor: '#FFF8E1', // Light yellow color from image
+    backgroundColor: '#FFF8E1',
     borderRadius: 15,
     marginHorizontal: 16,
     marginBottom: 20,

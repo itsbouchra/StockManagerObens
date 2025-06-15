@@ -166,7 +166,7 @@ const EditAchatScreen = ({ route, navigation }) => {
             selectedValue={fournisseurSelected}
             onValueChange={setFournisseurSelected}
           >
-            <Picker.Item label="Sélectionnez un fournisseur" value={undefined} />
+            <Picker.Item label="Sélectionnez un fournisseur" value="" />
             {fournisseurs.map(f => (
               <Picker.Item key={f.id_user} label={f.username} value={f.id_user} />
             ))}

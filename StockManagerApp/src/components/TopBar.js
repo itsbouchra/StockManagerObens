@@ -31,7 +31,7 @@ const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress,
             <Bell size={26} color={iconColor('notifications')} />
             {notificationCount > 0 && (
               <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+                <Text style={styles.notificationBadgeText}>{String(notificationCount)}</Text>
               </View>
             )}
           </View>
@@ -58,7 +58,7 @@ const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress,
           <Bell size={22} color={iconColor('notifications')} />
           {notificationCount > 0 && (
             <View style={styles.notificationBadge}>
-              <Text style={styles.notificationBadgeText}>{notificationCount}</Text>
+              <Text style={styles.notificationBadgeText}>{String(notificationCount)}</Text>
             </View>
           )}
         </TouchableOpacity>
