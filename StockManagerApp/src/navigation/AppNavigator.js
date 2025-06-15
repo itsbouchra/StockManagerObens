@@ -32,17 +32,19 @@ import EditVenteScreen from '../screens/EditVenteScreen';
 import ReceptionListScreen from '../screens/ReceptionListScreen';
 import PdfViewerScreen from '../screens/PdfViewerScreen';
 import ProductReceptionScreen from '../screens/ProductReceptionScreen';
+import AllActivitiesScreen from '../screens/AllActivitiesScreen';
+import OutOfStockScreen from '../screens/OutOfStockScreen';
 
 // Import new supplier screens
 import SupplierDashboardScreen from '../screens/SupplierDashboardScreen';
 import SupplierSellScreen from '../screens/SupplierSellScreen';
 import SupplierProfileScreen from '../screens/SupplierProfileScreen';
-import SupplierSettingsScreen from '../screens/SupplierSettingsScreen';
 import SupplierReceptionListScreen from '../screens/SupplierReceptionListScreen';
 import SupplierPdfViewerScreen from '../screens/SupplierPdfViewerScreen';
 import SupplierAccountInfoScreen from '../screens/SupplierAccountInfoScreen';
 import SupplierNotificationsScreen from '../screens/SupplierNotificationsScreen';
 import AdminNotificationsScreen from '../screens/AdminNotificationsScreen';
+import AboutAppScreen from '../screens/AboutAppScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +71,7 @@ const AppNavigator = () => {
           }}
         />
         <Stack.Screen name="Dashboard" component={DashboardWithNavbar} options={{ headerShown: false }} />
+        <Stack.Screen name="OutOfStockScreen" component={OutOfStockScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Categorie" component={CategorieScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProduitScreen" component={ProduitScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProductAD" component={ProductAD} options={{ headerShown: false }} />
@@ -89,14 +92,10 @@ const AppNavigator = () => {
         <Stack.Screen name="UserInfo" component={UserInformationScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SettingsCategorieScreen" component={SettingsCategorieScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AddCategorieScreen" component={AddCategorieScreen} options={{ headerShown: false }} />
-         <Stack.Screen name="AddSaleScreen" component={AddSaleScreen} options={{ headerShown: false }} />
-
-         <Stack.Screen name='SalesListScreen' component={SalesListScreen} options={{ headerShown:false}}/>
-         <Stack.Screen name='EditVenteScreen' component={EditVenteScreen} options={{ headerShown:false}}/>
-
-
-  
-
+        <Stack.Screen name="AddSaleScreen" component={AddSaleScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SalesListScreen" component={SalesListScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="EditVenteScreen" component={EditVenteScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AllActivitiesScreen" component={AllActivitiesScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ReceptionListScreen" component={ReceptionListScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PdfViewerScreen" component={PdfViewerScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ProductReceptionScreen" component={ProductReceptionScreen} options={{ headerShown: false }} />
@@ -105,12 +104,12 @@ const AppNavigator = () => {
         <Stack.Screen name="SupplierDashboard" component={SupplierDashboardScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierSell" component={SupplierSellScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierProfile" component={SupplierProfileScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SupplierSettings" component={SupplierSettingsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierReceptionList" component={SupplierReceptionListScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierPdfViewerScreen" component={SupplierPdfViewerScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierAccountInfo" component={SupplierAccountInfoScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SupplierNotifications" component={SupplierNotificationsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="AdminNotifications" component={AdminNotificationsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AboutApp" component={AboutAppScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

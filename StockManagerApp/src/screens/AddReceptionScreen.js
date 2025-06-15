@@ -1,40 +1,73 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
+import Toast from 'react-native-toast-message';
+
+const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const AddReceptionScreen = ({ navigation, route }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { achat } = route.params;
   const [produits, setProduits] = useState(
     route.params.produits.map(prod => ({
       ...prod,
+      nomProduit: String(prod.nomProduit || ''),
       quantite: '', // Champ vide au départ
+      qteConf: '', // Quantité conforme pour semi-conforme
+      refLot: '', // Référence de lot
+      date: '', // Date de réception
+      statut: '', // Statut de réception
     }))
   );
   const [openIndex, setOpenIndex] = useState(null);
   const [datePickerIdx, setDatePickerIdx] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const showDatePicker = idx => setDatePickerIdx(idx);
   const hideDatePicker = () => setDatePickerIdx(null);
 
   const handleReception = (achatStatut) => {
-    const depassement = produits.find(prod => {
-      const quantiteSaisie = prod.statut === 'Semi-Conforme'
-        ? Number(prod.qteConf) || 0
-        : Number(prod.quantite) || 0;
-      return quantiteSaisie > prod.quantiteAchat;
+    // Validate required fields
+    const produitIncomplet = produits.find(prod => {
+      if (!prod.date) return true;
+      if (!prod.statut) return true;
+      if (!prod.quantite && prod.statut !== 'Non-Conforme') return true;
+      if (prod.statut === 'Semi-Conforme' && !prod.qteConf) return true;
+      return false;
     });
 
-    if (depassement) {
-      alert(
-        `La quantité saisie (${depassement.statut === 'Semi-Conforme' ? depassement.qteConf : depassement.quantite}) pour le produit "${depassement.nom}" dépasse la quantité de l'achat (${depassement.quantiteAchat}) !`
-      );
-      return; // On bloque l'envoi
+    if (produitIncomplet) {
+      Toast.show({
+        type: 'error',
+        text1: 'Champs manquants',
+        text2: `Veuillez remplir tous les champs obligatoires pour le produit "${String(produitIncomplet.nomProduit)}".`,
+      });
+      return;
     }
 
-    fetch('http://10.0.2.2:8080/receptions', { // ← adapte ici selon ton environnement
+    // Validate quantities
+    const produitQuantiteInvalide = produits.find(prod => {
+      if (prod.statut === 'Semi-Conforme') {
+        return Number(prod.qteConf) > Number(prod.quantite);
+      }
+      return false;
+    });
+
+    if (produitQuantiteInvalide) {
+      Toast.show({
+        type: 'error',
+        text1: 'Quantité invalide',
+        text2: `La quantité conforme ne peut pas être supérieure à la quantité totale pour "${String(produitQuantiteInvalide.nomProduit)}".`,
+      });
+      return;
+    }
+
+    setLoading(true);
+    fetch(`${API_BASE_URL}/receptions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -48,9 +81,12 @@ const AddReceptionScreen = ({ navigation, route }) => {
             quantiteStockee = Number(prod.qteConf) || 0;
           } // Non-Conforme => 0
 
+          // Ensure date is in YYYY-MM-DD format
+          const date = prod.date ? new Date(prod.date).toISOString().split('T')[0] : null;
+
           return {
             idProduit: prod.idProduit,
-            dateReception: prod.date,
+            dateReception: date,
             quantite: quantiteStockee,
             statut: prod.statut,
             refLot: prod.refLot,
@@ -60,20 +96,81 @@ const AddReceptionScreen = ({ navigation, route }) => {
     })
     .then(res => {
       if (res.ok) {
+        Toast.show({
+          type: 'success',
+          text1: 'Succès',
+          text2: 'Réception enregistrée avec succès',
+        });
         navigation.navigate('BuysScreen', { refresh: true });
       } else {
-        alert('Erreur lors de la validation');
+        return res.json().then(err => { throw new Error(err.message || 'Erreur lors de la validation'); });
       }
     })
-    .catch(() => alert('Erreur de connexion au serveur'));
+    .catch(error => {
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: String(error.message || 'Erreur de connexion au serveur'),
+      });
+    })
+    .finally(() => {
+      setLoading(false);
+    });
   };
+
+  if (loading) {
+    return (
+      <View style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#f8fafc',
+      }}>
+        <View style={{
+          backgroundColor: '#fff',
+          padding: 24,
+          borderRadius: 16,
+          alignItems: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 4,
+          width: '80%',
+          maxWidth: 300,
+        }}>
+          <ActivityIndicator size="large" color="#4c6c43" />
+          <Text style={{
+            marginTop: 16,
+            fontSize: 18,
+            fontWeight: '600',
+            color: '#1e293b',
+            textAlign: 'center',
+          }}>
+            Enregistrement en cours...
+          </Text>
+          <Text style={{
+            marginTop: 8,
+            fontSize: 14,
+            color: '#64748b',
+            textAlign: 'center',
+          }}>
+            Veuillez patienter pendant que nous traitons votre demande
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Reception"
-        active="BuysScreen"
+        title="Ajouter Réception"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="stock"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         <Text style={{
@@ -95,7 +192,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
           fontWeight: 'bold',
           marginBottom: 10,
         }}>
-          Achat #{achat.idAchat}
+          Achat #{String(achat.idAchat)}
         </Text>
         <View style={{ alignItems: 'center', marginBottom: 20 }}>
           <Text
@@ -144,7 +241,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
                   fontSize: 16,
                   flex: 1,
                 }}>
-                  {prod.nomProduit}
+                  {String(prod.nomProduit)}
                 </Text>
                 <Text style={{ fontSize: 22, color: '#fff' }}>
                   {openIndex === idx ? '▲' : '▼'}
@@ -175,7 +272,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
                       marginBottom: 12,
                     }}
                     keyboardType="numeric"
-                    value={prod.quantite}
+                    value={String(prod.quantite)}
                     onChangeText={text => {
                       const newProduits = [...produits];
                       newProduits[idx].quantite = text;
@@ -186,55 +283,51 @@ const AddReceptionScreen = ({ navigation, route }) => {
 
                   <Text style={{ fontWeight: 'bold', marginBottom: 6 }}>Date :</Text>
                   <TouchableOpacity
+                    onPress={() => showDatePicker(idx)}
                     style={{
-                      backgroundColor: '#e6f4d7',
-                      borderRadius: 8,
+                      backgroundColor: '#f9fafb',
                       borderWidth: 1,
-                      borderColor: '#b5c9a3',
+                      borderColor: '#d1d5db',
+                      borderRadius: 8,
                       padding: 10,
                       marginBottom: 12,
                     }}
-                    onPress={() => showDatePicker(idx)}
                   >
-                    <Text style={{ color: '#222' }}>
-                      {prod.date ? prod.date : 'Choisir une date'}
+                    <Text style={{ color: prod.date ? '#111827' : '#6b7280' }}>
+                      {prod.date ? new Date(prod.date).toLocaleDateString() : 'Sélectionner une date'}
                     </Text>
                   </TouchableOpacity>
                   {datePickerIdx === idx && (
                     <DateTimePicker
                       value={prod.date ? new Date(prod.date) : new Date()}
                       mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      display="default"
                       onChange={(event, selectedDate) => {
                         hideDatePicker();
                         if (selectedDate) {
                           const newProduits = [...produits];
-                          // Format YYYY-MM-DD
-                          const d = selectedDate;
-                          const formatted = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-                          newProduits[idx].date = formatted;
+                          newProduits[idx].date = selectedDate.toISOString();
                           setProduits(newProduits);
                         }
                       }}
                     />
                   )}
-
                   <Text style={{ fontWeight: 'bold', marginBottom: 6 }}>Statut :</Text>
                   <View style={{
-                    backgroundColor: '#e6f4d7',
+                   borderWidth: 1,
+                    borderColor: '#d1d5db',
                     borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: '#b5c9a3',
                     marginBottom: 12,
+                    overflow: 'hidden',
                   }}>
                     <Picker
-                      selectedValue={prod.statut || ''}
-                      onValueChange={v => {
+                      selectedValue={prod.statut}
+                      onValueChange={itemValue => {
                         const newProduits = [...produits];
-                        newProduits[idx].statut = v;
+                        newProduits[idx].statut = itemValue;
                         setProduits(newProduits);
                       }}
-                      style={{ height: 40, width: '100%' }}
+                      style={{ height: 50, width: '100%' }}
                     >
                       <Picker.Item label="Sélectionner un statut" value="" />
                       <Picker.Item label="Conforme" value="Conforme" />
@@ -243,71 +336,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
                     </Picker>
                   </View>
 
-                  {/* Champs supplémentaires si Semi-Conforme */}
-                  {prod.statut === 'Semi-Conforme' && (
-                    <View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                        <Text style={{
-                          backgroundColor: '#d1d5db',
-                          borderRadius: 6,
-                          padding: 8,
-                          marginRight: 8,
-                          minWidth: 90,
-                          textAlign: 'center',
-                          fontWeight: 'bold'
-                        }}>Qte Conf :</Text>
-                        <TextInput
-                          style={{
-                            backgroundColor: '#f3f4f6',
-                            borderWidth: 1,
-                            borderColor: '#d1d5db',
-                            borderRadius: 6,
-                            padding: 8,
-                            minWidth: 60,
-                          }}
-                          keyboardType="numeric"
-                          value={prod.qteConf ? String(prod.qteConf) : ''}
-                          onChangeText={v => {
-                            const newProduits = [...produits];
-                            newProduits[idx].qteConf = v;
-                            setProduits(newProduits);
-                          }}
-                          placeholder="0"
-                        />
-                      </View>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                        <Text style={{
-                          backgroundColor: '#d1d5db',
-                          borderRadius: 6,
-                          padding: 8,
-                          marginRight: 8,
-                          minWidth: 90,
-                          textAlign: 'center',
-                          fontWeight: 'bold'
-                        }}>Qte NonConf :</Text>
-                        <TextInput
-                          style={{
-                            backgroundColor: '#f3f4f6',
-                            borderWidth: 1,
-                            borderColor: '#d1d5db',
-                            borderRadius: 6,
-                            padding: 8,
-                            minWidth: 60,
-                          }}
-                          keyboardType="numeric"
-                          value={prod.qteNonConf ? String(prod.qteNonConf) : ''}
-                          onChangeText={v => {
-                            const newProduits = [...produits];
-                            newProduits[idx].qteNonConf = v;
-                            setProduits(newProduits);
-                          }}
-                          placeholder="0"
-                        />
-                      </View>
-                    </View>
-                  )}
-
-                  <Text style={{ fontWeight: 'bold', marginBottom: 6 }}>Réf du lot :</Text>
+                  <Text style={{ fontWeight: 'bold', marginBottom: 6 }}>Référence de Lot :</Text>
                   <TextInput
                     style={{
                       backgroundColor: '#f9fafb',
@@ -315,25 +344,51 @@ const AddReceptionScreen = ({ navigation, route }) => {
                       borderColor: '#d1d5db',
                       borderRadius: 8,
                       padding: 10,
-                      marginBottom: 8,
+                      marginBottom: 12,
                     }}
-                    value={prod.refLot || ''}
-                    onChangeText={v => {
+                    value={prod.refLot}
+                    onChangeText={text => {
                       const newProduits = [...produits];
-                      newProduits[idx].refLot = v;
+                      newProduits[idx].refLot = text;
                       setProduits(newProduits);
                     }}
-                    placeholder="Entrer la référence du lot"
+                    placeholder="Référence de Lot"
                   />
+
+                  {prod.statut === 'Semi-Conforme' && (
+                    <View>
+                      <Text style={{ fontWeight: 'bold', marginBottom: 6 }}>Quantité Conforme :</Text>
+                      <TextInput
+                        style={{
+                          backgroundColor: '#f9fafb',
+                          borderWidth: 1,
+                          borderColor: '#d1d5db',
+                          borderRadius: 8,
+                          padding: 10,
+                          marginBottom: 12,
+                        }}
+                        keyboardType="numeric"
+                        value={String(prod.qteConf)}
+                        onChangeText={text => {
+                          const newProduits = [...produits];
+                          newProduits[idx].qteConf = text;
+                          setProduits(newProduits);
+                        }}
+                        placeholder="Quantité Conforme"
+                      />
+                    </View>
+                  )}
                 </View>
               )}
             </View>
           ))
         ) : (
-          <Text style={{ textAlign: 'center', color: '#888' }}>Aucun produit</Text>
+          <Text style={{ textAlign: 'center', marginVertical: 20, color: '#666' }}>
+            Aucun produit à réceptionner pour cet achat.
+          </Text>
         )}
       </ScrollView>
-      {/* Boutons en bas, juste au-dessus de la BottomNavBar */}
+
       <View style={{
         position: 'absolute',
         left: 0,
@@ -356,8 +411,10 @@ const AddReceptionScreen = ({ navigation, route }) => {
               marginRight: 8,
               minWidth: 100,
               alignItems: 'center',
+              opacity: loading ? 0.5 : 1, // Désactiver visuellement si loading
             }}
             onPress={() => handleReception("En attente")}
+            disabled={loading} // Désactiver le bouton pendant le chargement
           >
             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Valider</Text>
           </TouchableOpacity>
@@ -370,8 +427,10 @@ const AddReceptionScreen = ({ navigation, route }) => {
             borderRadius: 8,
             minWidth: 100,
             alignItems: 'center',
+            opacity: loading ? 0.5 : 1, // Désactiver visuellement si loading
           }}
           onPress={() => handleReception("Receptionné")}
+          disabled={loading} // Désactiver le bouton pendant le chargement
         >
           <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Clôturer</Text>
         </TouchableOpacity>
@@ -379,6 +438,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
         <BottomNavBar navigation={navigation} currentRoute="BuysScreen" />
       </View>
+      <Toast />
     </View>
   );
 };

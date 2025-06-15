@@ -163,13 +163,29 @@ public class AchatController {
     }
 
     @GetMapping("/{id}/facture.pdf")
-    public ResponseEntity<byte[]> generateFacture(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> generateFacture(@PathVariable Integer id, java.security.Principal principal) {
         try {
             logger.info("Starting invoice generation for achat ID: {}", id);
             
             Achat achat = achatRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Achat non trouvé"));
             logger.info("Found achat: {}", achat.getId());
+
+            String documentTitle = "FACTURE D'ACHAT"; // Default title
+            logger.info("Principal is null? {}", principal == null);
+            if (principal != null) {
+                logger.info("Principal name: {}", principal.getName());
+                User currentUser = userRepository.findByUsername(principal.getName());
+                logger.info("Current user found? {}", currentUser != null);
+                if (currentUser != null) {
+                    logger.info("Current user role: '{}'", currentUser.getRole());
+                    if ("fournisseur".equalsIgnoreCase(currentUser.getRole().trim())) {
+                        documentTitle = "BON DE COMMANDE";
+                        logger.info("Setting document title to BON DE COMMANDE");
+                    }
+                }
+            }
+            logger.info("Document title set to: {}", documentTitle);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Document document = new Document(PageSize.A4);
@@ -180,12 +196,10 @@ public class AchatController {
 
             // En-tête
             Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
-            Paragraph title = new Paragraph("FACTURE D'ACHAT", titleFont);
+            Paragraph title = new Paragraph(documentTitle, titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             title.setSpacingAfter(20);
             document.add(title);
-
-    
 
             // Informations de l'achat
             Font normalFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);

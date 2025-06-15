@@ -20,6 +20,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     // Find notifications where the user is the recipient and matches the sender ID
     List<Notification> findByRecipientRoleAndSenderIdOrderBySentAtDesc(String recipientRole, Integer senderId);
     
+    // New: Find notifications by recipient role and recipient ID
+    List<Notification> findByRecipientRoleAndRecipientIdOrderBySentAtDesc(String recipientRole, Integer recipientId);
+
+    // New: Count unread notifications by recipient role and recipient ID
+    long countByRecipientRoleAndRecipientIdAndReadStatusFalse(String recipientRole, Integer recipientId);
+
     // Find unread notifications for a specific role
     List<Notification> findByReadStatusAndRecipientRoleOrderBySentAtDesc(boolean readStatus, String recipientRole);
     

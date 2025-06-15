@@ -5,12 +5,14 @@ import TopBar from '../components/TopBar';
 import Toast from 'react-native-toast-message';
 import RNFetchBlob from 'react-native-blob-util';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const PdfViewerScreen = ({ navigation, route }) => {
   const { pdfUrl } = route.params;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [pdfSource, setPdfSource] = useState(null);
+  const { unreadNotificationsCount } = useAuth();
 
   console.log('Loading PDF from URL:', pdfUrl);
 
@@ -114,8 +116,11 @@ const PdfViewerScreen = ({ navigation, route }) => {
     <View style={{ flex: 1 }}>
       <TopBar
         title="Facture"
-        active="BuysScreen"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="home"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <View style={{ flex: 1, justifyContent: 'flex-start', alignItems: 'center', marginTop: 20 }}>
         {loading && (

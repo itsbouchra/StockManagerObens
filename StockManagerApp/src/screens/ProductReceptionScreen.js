@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, Image } from 'react-native';
+import { View, Text, FlatList, ActivityIndicator, Image, ScrollView } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
@@ -9,6 +10,7 @@ const ProductReceptionScreen = ({ route, navigation }) => {
   const { productId, productName, productPhoto } = route.params;
   const [receptions, setReceptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { unreadNotificationsCount } = useAuth();
 
   useEffect(() => {
     const fetchReceptions = async () => {
@@ -36,8 +38,15 @@ const ProductReceptionScreen = ({ route, navigation }) => {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar title="Stock" onGoBack={() => navigation.goBack()} />
+    <View style={styles.container}>
+      <TopBar
+        title="Stock Réception"
+        onGoBack={() => navigation.goBack()}
+        activeLeftIcon="stock"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
+      />
       <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#d1ded7', borderRadius: 10, margin: 16, padding: 12 }}>
         <Image source={{ uri: `${API_BASE_URL}/images/${productPhoto}` }} style={{ width: 60, height: 60, borderRadius: 8, marginRight: 16 }} />
         <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{productName}</Text>
@@ -75,6 +84,7 @@ const ProductReceptionScreen = ({ route, navigation }) => {
             <Text style={{ flex: 1, paddingLeft: 8 }}>{item.quantite}</Text>
           </View>
         )}
+        contentContainerStyle={styles.flatListContent}
       />
       <View style={{
         backgroundColor: '#ffe066',
@@ -91,6 +101,16 @@ const ProductReceptionScreen = ({ route, navigation }) => {
       <BottomNavBar navigation={navigation} currentRoute="ProductReception" />
     </View>
   );
+};
+
+const styles = {
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+  },
+  flatListContent: {
+    padding: 16,
+  },
 };
 
 export default ProductReceptionScreen;

@@ -7,16 +7,19 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const EditAchatScreen = ({ route, navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { idAchat } = route.params;
 
   const [fournisseurs, setFournisseurs] = useState([]);
@@ -148,6 +151,10 @@ const EditAchatScreen = ({ route, navigation }) => {
       <TopBar
         title="Modifier Achat"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="BuysScreen"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <Text style={styles.pageTitle}>Modifier Achat</Text>
@@ -159,7 +166,7 @@ const EditAchatScreen = ({ route, navigation }) => {
             selectedValue={fournisseurSelected}
             onValueChange={setFournisseurSelected}
           >
-            <Picker.Item label="Sélectionnez un fournisseur" value={undefined} />
+            <Picker.Item label="Sélectionnez un fournisseur" value="" />
             {fournisseurs.map(f => (
               <Picker.Item key={f.id_user} label={f.username} value={f.id_user} />
             ))}

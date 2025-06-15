@@ -4,31 +4,38 @@ import {
   Text,
   ActivityIndicator,
   FlatList,
-  Image,
   Dimensions,
   TouchableOpacity,
+  Image,
+  StyleSheet,
+  TextInput,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 import { useIsFocused } from '@react-navigation/native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
-const windowWidth = Dimensions.get('window').width;
-const boxMargin = 16;
-const boxesPerRow = 2;
-const boxWidth = (windowWidth - boxMargin * (boxesPerRow + 1)) / boxesPerRow;
 const API_BASE_URL = 'http://10.0.2.2:8080';
+const windowWidth = Dimensions.get('window').width;
+const numColumns = 2;
 
 const ProductsAdmin = ({ route, navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { id_categorie, categorieNom } = route.params;
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const isFocused = useIsFocused();
 
   const fetchProduits = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/produits/byCategorie/${id_categorie}`);
+      const res = await fetch(
+        `${API_BASE_URL}/produits/byCategorie/${id_categorie}`
+      );
       const data = await res.json();
+      console.log('Fetched products data:', data);
       setProduits(data);
     } catch (error) {
       console.error('Erreur chargement produits :', error);
@@ -41,24 +48,20 @@ const ProductsAdmin = ({ route, navigation }) => {
     if (isFocused) fetchProduits();
   }, [isFocused]);
 
+  const filteredProducts = produits.filter((product) =>
+    product.nom.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const getImageSource = (photo) => {
-    if (!photo || photo.trim() === '') {
-      return { uri: `${API_BASE_URL}/images/default.jpg` }; // or .png
+    if (photo && photo.trim() !== '') {
+      return { uri: `${API_BASE_URL}/images/${photo.trim()}` };
     }
-    const trimmedPhoto = photo.trim();
-    if (trimmedPhoto.startsWith('static/')) {
-      // If you ever have this, map to /images/default.jpg
-      return { uri: `${API_BASE_URL}/images/default.jpg` };
-    }
-    // Just a filename, add the folder
-    return { uri: `${API_BASE_URL}/images/${trimmedPhoto}` };
+    return require('../assets/default.png');
   };
 
   if (loading) {
     return (
-      <View style={{
-        flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6'
-      }}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f3f4f6' }}>
         <ActivityIndicator size="large" color="#00cc99" />
       </View>
     );
@@ -68,8 +71,18 @@ const ProductsAdmin = ({ route, navigation }) => {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Produits"
-        active="ProductAD"
+        activeLeftIcon="ProductAD"
         onGoBack={() => navigation.goBack()}
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
+      />
+
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Rechercher un produit..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
       />
 
       <Text
@@ -86,14 +99,24 @@ const ProductsAdmin = ({ route, navigation }) => {
       </Text>
 
       <FlatList
-        data={produits}
-        keyExtractor={(item) => item.id.toString()}
+        data={filteredProducts}
+        keyExtractor={(item, index) => (item.id_produit !== undefined && item.id_produit !== null) ? item.id_produit.toString() : `_temp_${index}`}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <TouchableOpacity
             onPress={() => {
-              console.log("Navigating to details with ID:", item.id);
-              navigation.navigate('ProductDetailScreen', { id_produit: item.id });
+              const product_id_to_navigate = parseInt(item.id, 10);
+              if (isNaN(product_id_to_navigate)) {
+                console.error("Error: Invalid id for item:", item);
+                Toast.show({
+                  type: 'error',
+                  text1: 'Erreur',
+                  text2: 'ID produit manquant ou invalide pour la navigation ❌',
+                });
+                return;
+              }
+              console.log("Navigating to details with ID:", product_id_to_navigate);
+              navigation.navigate('ProductDetailScreen', { id_produit: product_id_to_navigate });
             }}
             style={{
               flexDirection: 'row',
@@ -120,7 +143,7 @@ const ProductsAdmin = ({ route, navigation }) => {
       />
 
       <TouchableOpacity
-onPress={() => navigation.navigate('AddProductScreen', { id_categorie: id_categorie })}
+        onPress={() => navigation.navigate('AddProductScreen', { id_categorie: id_categorie })}
         style={{
           position: 'absolute',
           bottom: 90,
@@ -141,5 +164,25 @@ onPress={() => navigation.navigate('AddProductScreen', { id_categorie: id_catego
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchInput: {
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    borderRadius: 8,
+    margin: 16,
+    paddingHorizontal: 10,
+  },
+});
 
 export default ProductsAdmin;

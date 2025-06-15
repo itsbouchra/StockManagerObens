@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { User, Bell, LogOut, ChevronRight, Phone } from 'lucide-react-native';
 import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
 const SupplierProfileScreen = ({ navigation }) => {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, unreadNotificationsCount } = useAuth();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [userData, setUserData] = useState({
     username: '',
@@ -15,6 +16,8 @@ const SupplierProfileScreen = ({ navigation }) => {
     telephone: '',
     role: 'fournisseur' // Default role
   });
+  const [loading, setLoading] = useState(true);
+  const API_BASE_URL = 'http://10.0.2.2:8080';
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -92,6 +95,7 @@ const SupplierProfileScreen = ({ navigation }) => {
         onGoBack={() => navigation.goBack()}
         iconName="profile"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
       
       <ScrollView style={styles.content}>
@@ -122,10 +126,12 @@ const SupplierProfileScreen = ({ navigation }) => {
             <View style={styles.menuItemContent}>
               <View style={styles.menuItemLeft}>
                 <Bell size={24} color="#708238" />
-                <Text style={styles.menuItemText}>Notifications</Text>
+                <Text style={styles.menuItemText}>
+                  Notifications{unreadNotifications > 0 ? ` ${unreadNotifications}` : ''}
+                </Text>
               </View>
-              <Text style={styles.menuItemValue}>{unreadNotifications ?? 0}</Text>
             </View>
+            
             <ChevronRight size={24} color="#666" />
           </TouchableOpacity>
         </View>
@@ -261,28 +267,27 @@ const styles = StyleSheet.create({
   logoutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'white',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    padding: 16,
-    marginTop: 24,
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 3,
+    elevation: 3,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: '90%',
+    marginVertical: 20,
   },
   logoutIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   logoutText: {
-    fontSize: 16,
-    color: '#FF3B30',
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#FF3B30',
   },
 });
 

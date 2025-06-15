@@ -45,6 +45,34 @@ public class NotificationController {
         }
     }
 
+    @GetMapping("/recipient/{role}/{recipientId}")
+    public ResponseEntity<?> getRecipientNotifications(
+            @PathVariable String role,
+            @PathVariable String recipientId) {
+        try {
+            List<Notification> notifications = notificationService.getNotificationsByRecipient(role, recipientId);
+            return ResponseEntity.ok(notifications);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error fetching recipient notifications: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/recipient/{role}/{recipientId}/unread/count")
+    public ResponseEntity<?> getUnreadRecipientNotificationsCount(
+            @PathVariable String role,
+            @PathVariable String recipientId) {
+        try {
+            long unreadCount = notificationService.getUnreadNotificationsCountByRecipient(role, recipientId);
+            return ResponseEntity.ok(unreadCount);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error fetching unread recipient notifications count: " + e.getMessage());
+        }
+    }
+
     @GetMapping("/user/{role}/{userId}")
     public ResponseEntity<?> getUserNotifications(
             @PathVariable String role,

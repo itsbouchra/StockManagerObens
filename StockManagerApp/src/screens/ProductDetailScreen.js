@@ -13,7 +13,7 @@ import {
 import { Pencil, Trash2 } from 'lucide-react-native';
 import { useIsFocused } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
-
+import { useAuth } from '../context/AuthContext';
 
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
@@ -21,6 +21,7 @@ import BottomNavBar from '../components/BottomNavBar';
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const ProductDetailScreen = ({ route, navigation }) => {
+  const { user, unreadNotificationsCount } = useAuth();
   const { id_produit } = route.params;
   const [produit, setProduit] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,8 +30,16 @@ const ProductDetailScreen = ({ route, navigation }) => {
   const isFocused = useIsFocused();
 
   const fetchProduit = async () => {
+    const numericIdProduit = parseInt(id_produit, 10);
+
+    if (isNaN(numericIdProduit) || typeof numericIdProduit !== 'number') {
+      console.error("Error: Invalid id_produit in ProductDetailScreen:", id_produit);
+      setError(true);
+      setLoading(false);
+      return;
+    }
     try {
-      const response = await fetch(`${API_BASE_URL}/produits/${id_produit}`);
+      const response = await fetch(`${API_BASE_URL}/produits/${numericIdProduit}`);
       if (!response.ok) throw new Error('Erreur serveur');
       const data = await response.json();
       setProduit(data);
@@ -98,9 +107,12 @@ const ProductDetailScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <TopBar
-        title="Produits"
-        active="ProductAD"
+        title="Détails du Produit"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="ProductAD"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.detailTitle}>Détail Produit</Text>
@@ -307,7 +319,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  
 });
 
 export default ProductDetailScreen;

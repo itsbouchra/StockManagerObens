@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
+import { useAuth } from '../context/AuthContext';
 
 const windowWidth = Dimensions.get('window').width;
 const boxMargin = 16;
@@ -16,6 +17,7 @@ const boxesPerRow = 2;
 const boxWidth = (windowWidth - boxMargin * (boxesPerRow + 1)) / boxesPerRow;
 
 const CategorieScreen = ({ navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const API_BASE_URL = 'http://10.0.2.2:8080';
@@ -47,9 +49,12 @@ const CategorieScreen = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Stock"
-        active="stock"
+        title="Catégories"
+        activeLeftIcon="stock"
         onGoBack={() => navigation.goBack()}
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
 
       <Text

@@ -5,16 +5,20 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const SupplierSellScreen = ({ navigation, route }) => {
+  const { user, unreadNotificationsCount } = useAuth();
   const [achats, setAchats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchAchats = async () => {
     setLoading(true);
@@ -59,6 +63,7 @@ const SupplierSellScreen = ({ navigation, route }) => {
         iconName="sell"
         active={true}
         onGoBack={() => navigation.goBack()}
+        notificationCount={unreadNotificationsCount}
       />
 
       <Text
@@ -98,45 +103,6 @@ const SupplierSellScreen = ({ navigation, route }) => {
                 position: 'relative',
               }}
             >
-              {/* Bouton + en haut à droite */}
-              {/* {item.statut !== 'Réceptionné' && (
-                <TouchableOpacity
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: 10,
-                    backgroundColor: '#e6f4d7',
-                    borderRadius: 19,
-                    width: 40,
-                    height: 40,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 2,
-                    borderColor: '#7e9a50',
-                    shadowColor: '#ffd700',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.18,
-                    shadowRadius: 6,
-                    elevation: 6,
-                    zIndex: 10,
-                  }}
-                  activeOpacity={0.85}
-                  onPress={() => {
-                    const produits = item.lignes || [];
-                    navigation.navigate('AddReceptionScreen', { achat: item, produits });
-                  }}
-                >
-                  <Text style={{
-                    fontSize: 30,
-                    color: '#7e9a50',
-                    fontWeight: 'bold',
-                    marginTop: -2,
-                    textShadowColor: '#fffbe6',
-                    textShadowOffset: { width: 0, height: 1 },
-                    textShadowRadius: 2,
-                  }}>+</Text>
-                </TouchableOpacity>
-              )} */}
               <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 8 }}>
                 Vente #{item.idAchat}
               </Text>
@@ -171,7 +137,7 @@ const SupplierSellScreen = ({ navigation, route }) => {
                       textTransform: 'uppercase',
                     }}
                   >
-                    {item.statut === 'Réceptionné' ? 'Réceptionné' : 'En attente'}
+                    {item.statut === 'Réceptionné' ? 'Envoyé' : 'En attente'}
                   </Text>
                 </View>
               </View>
@@ -180,7 +146,6 @@ const SupplierSellScreen = ({ navigation, route }) => {
                 <Text style={{ marginLeft: 8, color: '#374151' }}>{item.montantTotal} DH</Text>
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-                {/* Print Button */}
                 <TouchableOpacity
                   style={{
                     backgroundColor: '#fef9c3',

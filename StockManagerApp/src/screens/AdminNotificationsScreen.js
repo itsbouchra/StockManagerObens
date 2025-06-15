@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 
 const AdminNotificationsScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, fetchUnreadNotificationsCount, unreadNotificationsCount } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -22,20 +22,25 @@ const AdminNotificationsScreen = ({ navigation }) => {
 
   const fetchNotifications = async () => {
     if (!user || !user.id_user) {
+        console.log("User or user ID is not available, skipping notification fetch.");
         setLoading(false);
         return;
     }
+    console.log(`Fetching notifications for ADMIN with id_user: ${user.id_user}`);
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/api/notifications/user/ADMIN/${user.id_user}`
+        `http://10.0.2.2:8080/api/notifications/recipient/ADMIN/${user.id_user}`
       );
+      console.log("API Response status:", response.status);
       if (!response.ok) {
         const errorBody = await response.text();
         console.error(`Échec de la récupération des notifications. Statut: ${response.status}, Corps: ${errorBody}`);
         throw new Error('Échec du chargement des notifications');
       }
       const data = await response.json();
+      console.log("Received notifications data:", data);
       setNotifications(data);
+      fetchUnreadNotificationsCount(user.role.toUpperCase(), user.id_user); // Update global count with role
     } catch (error) {
       console.error('Erreur lors de la récupération des notifications:', error);
       Toast.show({
@@ -56,37 +61,54 @@ const AdminNotificationsScreen = ({ navigation }) => {
   }, [user]);
 
   const renderNotificationItem = ({ item }) => {
-    const isReceived = item.senderRole === 'SUPPLIER' || item.senderRole === 'CLIENT';
+    // For AdminNotificationsScreen, all messages are received messages.
+    // Determine display name based on senderUsername, with fallback to senderRole.
+    const senderRoleUpperCase = item.senderRole ? item.senderRole.toUpperCase() : '';
+
+    const senderDisplayName = item.senderUsername && item.senderUsername.trim() !== ''
+      ? item.senderUsername
+      : senderRoleUpperCase === 'SUPPLIER' || senderRoleUpperCase === 'FOURNISSEUR' ? 'Fournisseur' :
+        senderRoleUpperCase === 'CLIENT' ? 'Client' : 'Inconnu';
+
     const isSelected = selectedNotification?.id === item.id;
-    const senderType = item.senderRole === 'SUPPLIER' ? 'Fournisseur' : 'Client';
 
     return (
       <TouchableOpacity
         style={[
           styles.notificationItem,
-          isReceived ? styles.receivedMessage : styles.sentMessage,
+          styles.receivedMessage, // Always use received message styling on this screen
           isSelected && styles.selectedItem,
         ]}
         onPress={() => setSelectedNotification(item)}
       >
         <View style={styles.messageHeader}>
           <Text style={styles.senderInfo}>
-            {isReceived ? `De ${senderType}` : `À ${item.recipientRole === 'SUPPLIER' ? 'Fournisseur' : 'Client'}`}
+            {`De ${senderDisplayName}`}
           </Text>
           <Text style={styles.timestamp}>
             {new Date(item.sentAt).toLocaleString()}
           </Text>
         </View>
         <Text style={styles.messageText}>{item.message}</Text>
-        {isReceived && !item.readStatus && (
+        {!item.readStatus && (
           <View style={styles.unreadIndicator} />
         )}
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => handleDeleteNotification(item.id)}
-        >
-          <Text style={styles.deleteButtonText}>Supprimer</Text>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          {!item.readStatus && (
+            <TouchableOpacity
+              style={[styles.actionButton, styles.markAsReadButton]}
+              onPress={() => handleMarkAsRead(item.id)}
+            >
+              <Text style={styles.actionButtonText}>Marquer comme lu</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.actionButton, styles.deleteButton]}
+            onPress={() => handleDeleteNotification(item.id)}
+          >
+            <Text style={styles.actionButtonText}>Supprimer</Text>
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     );
   };
@@ -108,13 +130,41 @@ const AdminNotificationsScreen = ({ navigation }) => {
         text1: 'Succès',
         text2: 'Notification supprimée avec succès',
       });
-      fetchNotifications(); // Refresh the list
+      fetchNotifications(); // Refresh the list and update global count
     } catch (error) {
       console.error('Erreur lors de la suppression de la notification:', error);
       Toast.show({
         type: 'error',
         text1: 'Erreur',
         text2: 'Échec de la suppression de la notification',
+      });
+    }
+  };
+
+  const handleMarkAsRead = async (notificationId) => {
+    try {
+      const response = await fetch(`http://10.0.2.2:8080/api/notifications/read/${notificationId}`, {
+        method: 'PUT',
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`Échec du marquage comme lu. Statut: ${response.status}, Corps:`, errorBody);
+        throw new Error('Échec du marquage de la notification comme lue');
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Succès',
+        text2: 'Notification marquée comme lue',
+      });
+      fetchNotifications(); // Refresh the list and update global count
+    } catch (error) {
+      console.error('Erreur lors du marquage comme lu:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: 'Échec du marquage de la notification comme lue',
       });
     }
   };
@@ -132,8 +182,11 @@ const AdminNotificationsScreen = ({ navigation }) => {
       <TopBar
         title="Notifications"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="bell"
-        activeRightIcon={null}
+        activeLeftIcon="notifications"
+        onNotificationPress={() => {}}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
+        activeRightIcon="settings"
       />
 
       <View style={styles.notificationsContainer}>
@@ -228,14 +281,24 @@ const styles = StyleSheet.create({
     color: '#2c3e50',
     marginBottom: 16,
   },
-  deleteButton: {
-    backgroundColor: '#dc3545',
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 10,
+  },
+  actionButton: {
     padding: 8,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 10,
+    marginLeft: 10,
   },
-  deleteButtonText: {
+  deleteButton: {
+    backgroundColor: '#dc3545',
+  },
+  markAsReadButton: {
+    backgroundColor: '#007AFF',
+  },
+  actionButtonText: {
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '500',

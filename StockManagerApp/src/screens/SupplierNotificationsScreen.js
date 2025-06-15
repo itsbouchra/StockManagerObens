@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import Toast from 'react-native-toast-message';
-import TopBar from '../components/TopBar';
+import SupplierTopBar from '../components/SupplierTopBar';
 
 const SupplierNotificationsScreen = ({ navigation }) => {
-  const { user } = useAuth();
+  const { user, unreadNotificationsCount, fetchUnreadNotificationsCount } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -22,13 +22,13 @@ const SupplierNotificationsScreen = ({ navigation }) => {
   const [newMessageBody, setNewMessageBody] = useState('');
 
   const fetchNotifications = async () => {
-    if (!user || !user.id_user) {
+    if (!user || !user.id_user || !user.role) {
         setLoading(false);
         return;
     }
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/api/notifications/user/SUPPLIER/${user.id_user}`
+        `http://10.0.2.2:8080/api/notifications/user/${user.role.toUpperCase()}/${user.id_user}`
       );
       if (!response.ok) {
         const errorBody = await response.text();
@@ -37,6 +37,8 @@ const SupplierNotificationsScreen = ({ navigation }) => {
       }
       const data = await response.json();
       setNotifications(data);
+      // Update the unread count via AuthContext
+      fetchUnreadNotificationsCount(user.role.toUpperCase(), user.id_user);
     } catch (error) {
       console.error('Erreur lors de la récupération des notifications:', error);
       Toast.show({
@@ -79,11 +81,13 @@ const SupplierNotificationsScreen = ({ navigation }) => {
       title: `Message de ${user.username}`,
       message: newMessageBody,
       senderId: user.id_user.toString(),
-      senderRole: 'SUPPLIER',
+      senderRole: user.role.toUpperCase(),
       recipientRole: 'ADMIN',
       senderUsername: user.username,
+      recipientUsername: 'admin',
     };
     console.log('Envoi d\'un nouveau message du Fournisseur:', messageData);
+    console.log('SupplierNotificationsScreen: user.role before sending:', user.role);
 
     try {
       const response = await fetch('http://10.0.2.2:8080/api/notifications/send', {
@@ -135,9 +139,14 @@ const SupplierNotificationsScreen = ({ navigation }) => {
           <Text style={styles.senderInfo}>
             {isReceived ? 'De l\'Admin' : 'À l\'Admin'}
           </Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.sentAt).toLocaleString()}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.timestamp}>
+              {new Date(item.sentAt).toLocaleString()}
+            </Text>
+            {!isReceived && item.readStatus && (
+              <Text style={styles.readStatusText}> (Lu)</Text>
+            )}
+          </View>
         </View>
         <Text style={styles.messageText}>{item.message}</Text>
         {isReceived && !item.readStatus && (
@@ -157,11 +166,12 @@ const SupplierNotificationsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TopBar
+      <SupplierTopBar
         title="Notifications"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="bell"
-        activeRightIcon={null}
+        iconName="notifications"
+        active={true}
+        notificationCount={unreadNotificationsCount}
       />
 
       <View style={styles.newMessageContainer}>
@@ -255,69 +265,59 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#2196f3',
   },
-  replyContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  replyInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  replyButton: {
-    backgroundColor: '#2196f3',
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  replyButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  readStatusText: {
+    fontSize: 12,
+    color: '#007AFF',
+    marginLeft: 5,
     fontWeight: 'bold',
   },
   newMessageContainer: {
     padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
+    backgroundColor: '#ffffff',
+    margin: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
+    borderColor: '#ced4da',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 10,
     fontSize: 16,
+    color: '#495057',
   },
   messageInput: {
     minHeight: 80,
     textAlignVertical: 'top',
   },
   sendButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#28a745',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 8,
   },
   sendButtonText: {
-    color: '#fff',
+    color: '#ffffff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 10,
   },
   notificationsContainer: {
-    padding: 16,
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  listContainer: {
+    paddingBottom: 20,
   },
 });
 

@@ -9,16 +9,19 @@ import {
   ScrollView,
   ActivityIndicator,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const EditVenteScreen = ({ route, navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { idVente } = route.params;
 
   const [clients, setClients] = useState([]);
@@ -127,7 +130,14 @@ const EditVenteScreen = ({ route, navigation }) => {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-      <TopBar title="Modifier Vente" onGoBack={() => navigation.goBack()} />
+      <TopBar
+        title="Modifier Vente"
+        onGoBack={() => navigation.goBack()}
+        activeLeftIcon="SalesListScreen"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
+      />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <Text style={styles.pageTitle}>Modifier Vente</Text>
 

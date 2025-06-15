@@ -4,6 +4,7 @@ import SupplierTopBar from '../components/SupplierTopBar';
 import SupplierBottomNavBar from '../components/SupplierBottomNavBar';
 import StatCard from '../components/StatCard';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../context/AuthContext';
 import {
   DollarSign,
   CheckCircle,
@@ -21,6 +22,7 @@ const LIGHT_GREEN = '#A8BDA0';
 const LIGHT_YELLOW = '#FFF4B1';
 
 const SupplierDashboardScreen = ({ navigation }) => {
+  const { user, unreadNotificationsCount } = useAuth();
   const [userName, setUserName] = useState('Utilisateur');
   const [stats, setStats] = useState({
     totalSells: 0,
@@ -93,6 +95,7 @@ const SupplierDashboardScreen = ({ navigation }) => {
         onSettingsPress={handleSettingsPress}
         iconName="home"
         active={true}
+        notificationCount={unreadNotificationsCount}
       />
 
       <ScrollView style={styles.content}>
@@ -105,34 +108,42 @@ const SupplierDashboardScreen = ({ navigation }) => {
           <ActivityIndicator size="large" color={PRIMARY_COLOR} style={styles.loadingIndicator} />
         ) : (
           <View style={styles.statsContainer}>
-            <StatCard
-              label="Ventes totales"
-              value={stats.totalSells.toString()}
-              bgColor={PRIMARY_COLOR}
-              iconName="dollar-sign"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons conformes"
-              value={stats.conformeDeliveries.toString()}
-              bgColor={LIGHT_GREEN}
-              iconName="check-circle"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons non conformes"
-              value={stats.nonConformeDeliveries.toString()}
-              bgColor={DARK_GRAY}
-              iconName="x-circle"
-              style={styles.statCard}
-            />
-            <StatCard
-              label="Livraisons semi-conformes"
-              value={stats.semiConformeDeliveries.toString()}
-              bgColor={ACCENT_COLOR}
-              iconName="alert-circle"
-              style={styles.statCard}
-            />
+            <React.Fragment>
+              <StatCard
+                label="Ventes totales"
+                value={stats.totalSells.toString()}
+                bgColor={PRIMARY_COLOR}
+                iconName="dollar-sign"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons conformes"
+                value={stats.conformeDeliveries.toString()}
+                bgColor={LIGHT_GREEN}
+                iconName="check-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons non conformes"
+                value={stats.nonConformeDeliveries.toString()}
+                bgColor={DARK_GRAY}
+                iconName="x-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
+            <React.Fragment>
+              <StatCard
+                label="Livraisons semi-conformes"
+                value={stats.semiConformeDeliveries.toString()}
+                bgColor={ACCENT_COLOR}
+                iconName="alert-circle"
+                style={styles.statCard}
+              />
+            </React.Fragment>
           </View>
         )}
 

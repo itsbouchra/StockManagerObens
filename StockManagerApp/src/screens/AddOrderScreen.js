@@ -13,11 +13,13 @@ import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useAuth } from '../context/AuthContext';
 // import { Ionicons } from '@expo/vector-icons'; // ou 'react-native-vector-icons/Ionicons'
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const AddOrderScreen = ({ navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   // Données fournisseurs, catégories, produits
   const [fournisseurs, setFournisseurs] = useState([]);
   const [loadingFournisseurs, setLoadingFournisseurs] = useState(true);
@@ -35,6 +37,7 @@ const AddOrderScreen = ({ navigation }) => {
 
   // Liste des lignes produits ajoutées
   const [lignes, setLignes] = useState([]);
+  const [loading, setLoading] = useState(false); // Re-added loading state
 
   // Fetch fournisseurs
   useEffect(() => {
@@ -50,7 +53,7 @@ const AddOrderScreen = ({ navigation }) => {
         setFournisseurs(fournisseurs);
       })
       .catch((err) => {
-        Toast.show({ type: 'error', text1: 'Erreur chargement fournisseurs', text2: err.message });
+        Toast.show({ type: 'error', text1: 'Erreur chargement fournisseurs', text2: String(err.message || 'Erreur lors du chargement des fournisseurs') });
       })
       .finally(() => {
         if (isMounted) setLoadingFournisseurs(false);
@@ -64,7 +67,7 @@ const AddOrderScreen = ({ navigation }) => {
     fetch(`${API_BASE_URL}/categories/all`)
       .then(res => res.json())
       .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement catégories' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement catégories', text2: 'Une erreur est survenue lors du chargement des catégories' }))
       .finally(() => setLoadingCategories(false));
   }, []);
 
@@ -78,18 +81,29 @@ const AddOrderScreen = ({ navigation }) => {
     fetch(`${API_BASE_URL}/produits/byCategorie/${categorieSelected}`)
       .then(res => res.json())
       .then(data => setProduits(Array.isArray(data) ? data : []))
-      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement produits' }));
+      .catch(() => Toast.show({ type: 'error', text1: 'Erreur chargement produits', text2: 'Une erreur est survenue lors du chargement des produits' }));
   }, [categorieSelected]);
 
   // Total général
   const totalGeneral = lignes.reduce((sum, l) => sum + (Number(l.total) || 0), 0);
 
+  const handleSettingsPress = () => {
+    navigation.navigate('Settings'); // Navigate to settings screen
+  };
+
+  const handleNotificationPress = () => {
+    navigation.navigate('AdminNotifications'); // Navigate to admin notifications page
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Achats"
-        active="BuysScreen"
+        activeLeftIcon="BuysScreen"
         onGoBack={() => navigation.goBack()}
+        notificationCount={String(unreadNotificationsCount || '')}
+        onNotificationPress={handleNotificationPress}
+        onSettingsPress={handleSettingsPress}
       />
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 80 }}>
         <Text style={styles.pageTitle}>Ajouter Achat</Text>
@@ -104,7 +118,9 @@ const AddOrderScreen = ({ navigation }) => {
           >
             <Picker.Item label="Sélectionnez un fournisseur" value="" />
             {fournisseurs.map(f => (
-              <Picker.Item key={f.id_user} label={f.username} value={f.id_user} />
+              f.id_user ? (
+                <Picker.Item key={String(f.id_user)} label={String(f.username || '')} value={String(f.id_user)} />
+              ) : null
             ))}
           </Picker>
         </View>
@@ -115,7 +131,7 @@ const AddOrderScreen = ({ navigation }) => {
           <TextInput
             placeholder="YYYY-MM-DD"
             style={styles.input}
-            value={date}
+            value={String(date || '')} // Explicitly convert to string with fallback
             editable={false}
             pointerEvents="none"
           />
@@ -152,7 +168,9 @@ const AddOrderScreen = ({ navigation }) => {
           >
             <Picker.Item label="Sélectionnez une catégorie" value="" />
             {categories.map(c => (
-              <Picker.Item key={c.id_categorie} label={c.nom} value={c.id_categorie} />
+              c.id_categorie ? (
+                <Picker.Item key={String(c.id_categorie)} label={String(c.nom || '')} value={String(c.id_categorie)} />
+              ) : null
             ))}
           </Picker>
         </View>
@@ -169,7 +187,9 @@ const AddOrderScreen = ({ navigation }) => {
             >
               <Picker.Item label="Sélectionnez un produit" value="" />
               {Array.isArray(produits) && produits.map(p => (
-                <Picker.Item key={p.id} label={p.nom} value={String(p.id)} />
+                p.id ? (
+                  <Picker.Item key={String(p.id)} label={String(p.nom || '')} value={String(p.id)} />
+                ) : null
               ))}
             </Picker>
           </View>
@@ -193,7 +213,7 @@ const AddOrderScreen = ({ navigation }) => {
                 setProduitSelected(""); // Reset selection
                 setPickerKey(prev => prev + 1); // Force Picker to reset
               } else {
-                Toast.show({ type: 'error', text1: 'Sélectionnez un produit' });
+                Toast.show({ type: 'error', text1: 'Sélectionnez un produit', text2: 'Veuillez sélectionner un produit valide à ajouter.' });
               }
             }}
             style={styles.addCircleButton}
@@ -207,14 +227,14 @@ const AddOrderScreen = ({ navigation }) => {
           <View key={ligne.key} style={styles.ligneContainer}>
             {/* Affiche le nom du produit sélectionné */}
             <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#166534', marginBottom: 8, marginLeft: 2 }}>
-              {ligne.produit && typeof ligne.produit.nom === 'string' ? ligne.produit.nom : ''}
+              {String((ligne.produit && typeof ligne.produit.nom === 'string' ? ligne.produit.nom : '') || '')}
             </Text>
             <View style={styles.row}>
               <TextInput
                 placeholder="Quantité"
                 keyboardType="numeric"
                 style={[styles.inputSmall, { marginRight: 8 }]}
-                value={ligne.quantite}
+                value={String(ligne.quantite || '')}
                 onChangeText={v => {
                   const newLignes = [...lignes];
                   newLignes[idx].quantite = v;
@@ -226,7 +246,7 @@ const AddOrderScreen = ({ navigation }) => {
                 placeholder="Prix"
                 keyboardType="numeric"
                 style={[styles.inputSmall, { marginRight: 8 }]}
-                value={ligne.prix}
+                value={String(ligne.prix || '')}
                 onChangeText={v => {
                   const newLignes = [...lignes];
                   newLignes[idx].prix = v;
@@ -235,7 +255,7 @@ const AddOrderScreen = ({ navigation }) => {
                 }}
               />
               <Text style={styles.prix}>
-                Total: {ligne.total ? ligne.total.toFixed(2) : '0.00'} DH
+                Total: {String(ligne.total ? ligne.total.toFixed(2) : '0.00')} DH
               </Text>
             </View>
             <TouchableOpacity
@@ -251,7 +271,7 @@ const AddOrderScreen = ({ navigation }) => {
 
         {/* Total général */}
         <Text style={[styles.pageTitle, { marginTop: 24 }]}>
-          Total Général: {totalGeneral.toFixed(2)} DH
+          Total Général: {String(totalGeneral.toFixed(2))} DH
         </Text>
 
         {/* Ajouter button at bottom right */}
@@ -363,7 +383,7 @@ const AddOrderScreen = ({ navigation }) => {
                 Toast.show({
                   type: 'error',
                   text1: 'Erreur réseau',
-                  text2: e.message,
+                  text2: String(e.message || 'Une erreur est survenue'),
                   position: 'top',
                   visibilityTime: 2000,
                 });

@@ -8,16 +8,19 @@ import {
   ActivityIndicator,
   Image,
   StyleSheet,
+  Alert,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { launchImageLibrary } from 'react-native-image-picker';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
 import { Upload } from 'lucide-react-native';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = 'http://10.0.2.2:8080';
 
 const EditProductScreen = ({ route, navigation }) => {
+  const { unreadNotificationsCount } = useAuth();
   const { id_produit } = route.params;
 
   const [nom, setNom] = useState('');
@@ -30,7 +33,6 @@ const EditProductScreen = ({ route, navigation }) => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [photoFilename, setPhotoFilename] = useState('');
-
 
   const [focus, setFocus] = useState({
     nom: false,
@@ -59,8 +61,7 @@ const EditProductScreen = ({ route, navigation }) => {
         setStockMin(data.stockMin != null ? data.stockMin.toString() : '');
         setPhotoData(null); // Clear local photo data on fetch
         setPhoto(data.photo ? `${API_BASE_URL}/images/${data.photo.trim()}` : '');
-setPhotoFilename(data.photo || '');
-
+        setPhotoFilename(data.photo || '');
       } catch (err) {
         Toast.show({
           type: 'error',
@@ -128,15 +129,14 @@ setPhotoFilename(data.photo || '');
         });
       } else {
         // If no new photo selected, send JSON without photo
-       const payload = {
+        const payload = {
           nom,
           description,
           prix: parseFloat(prix),
           unit,
           stockMin: stockMin ? parseInt(stockMin, 10) : 0,
           photo: photoFilename, // Send existing photo name if not changed
-};
-
+        };
 
         res = await fetch(`${API_BASE_URL}/produits/${id_produit}`, {
           method: 'PUT',
@@ -150,12 +150,12 @@ setPhotoFilename(data.photo || '');
         throw new Error(errorData.message || 'Erreur serveur');
       }
 
-     Toast.show({
-  type: 'success',
-  text1: '✅ Produit modifié avec succès',
-  text2: 'Votre produit a été mis à jour.',
-  position: 'top',
-});
+      Toast.show({
+        type: 'success',
+        text1: '✅ Produit modifié avec succès',
+        text2: 'Votre produit a été mis à jour.',
+        position: 'top',
+      });
 
       // Delay navigation to allow toast to show
       setTimeout(() => {
@@ -184,11 +184,14 @@ setPhotoFilename(data.photo || '');
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
-        title="Produits"
-        active="ProductAD"
+        title="Modifier Produit"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="ProductAD"
+        onNotificationPress={() => navigation.navigate('AdminNotifications')}
+        notificationCount={unreadNotificationsCount}
+        onSettingsPress={() => navigation.navigate('Settings')}
       />
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.pageTitle}>Modifier produit</Text>
 
         <View style={styles.form}>
@@ -365,6 +368,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f3f4f6',
+  },
+  scrollContent: {
+    padding: 16,
   },
 });
 
