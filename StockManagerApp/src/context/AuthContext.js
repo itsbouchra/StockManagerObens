@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     }
     try {
       console.log('AuthContext: Attempting to fetch notifications for role:', userRole.toUpperCase(), 'and userId:', userId);
-      const response = await fetch(`${BASE_URL}/notifications/user/${userRole.toUpperCase()}/${userId}`);
+      const response = await fetch(`${BASE_URL}/notifications/user/${userRole.toLowerCase()}/${userId}`);
       if (response.ok) {
         const allNotifications = await response.json();
         console.log('AuthContext: Fetched allNotifications for', userRole.toUpperCase(), userId, ':', allNotifications);

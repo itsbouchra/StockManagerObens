@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,11 +35,10 @@ public class ReceptionController {
     private ReceptionRepository receptionRepository;
 
     @Autowired
-    private ProduitRepository produitRepository; // Ajouté pour récupérer le produit
+    private ProduitRepository produitRepository;
 
     @PostMapping("/receptions")
     public ResponseEntity<?> enregistrerReceptions(@RequestBody ReceptionRequest request) {
-        // request contient : List<ReceptionDTO> receptions, Integer achatId, String achatStatut
         Achat achat = achatRepository.findById(request.getAchatId()).orElseThrow();
         achat.setStatut(request.getAchatStatut());
         achatRepository.save(achat);
@@ -54,8 +54,7 @@ public class ReceptionController {
             reception.setRefLot(dto.getRefLot());
             receptionRepository.save(reception);
         }
-        
-        // Après avoir enregistré les réceptions
+
         boolean allProductsReceived = true;
         for (LigneAchat ligne : achat.getLignes()) {
             int totalRecu = receptionRepository.sumQuantiteConformeByAchatAndProduit(achat.getId(), ligne.getProduit().getId());
@@ -68,7 +67,7 @@ public class ReceptionController {
             achat.setStatut("Réceptionné");
             achatRepository.save(achat);
         }
-        
+
         return ResponseEntity.ok().build();
     }
 
@@ -95,8 +94,7 @@ public class ReceptionController {
                     dto.setQuantite(reception.getQuantite());
                     dto.setStatut(reception.getStatut());
                     dto.setRefLot(reception.getRefLot());
-                    
-                    // Map produit data
+
                     Produit produit = reception.getProduit();
                     if (produit != null) {
                         ProduitDTO produitDTO = new ProduitDTO();
@@ -106,11 +104,11 @@ public class ReceptionController {
                         produitDTO.setUnit(produit.getUnit());
                         dto.setProduit(produitDTO);
                     }
-                    
+
                     return dto;
                 })
                 .collect(Collectors.toList());
-            
+
             return ResponseEntity.ok(responseDTOs);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching receptions: " + e.getMessage());
@@ -132,7 +130,6 @@ public class ReceptionController {
                     dto.setRefLot(reception.getRefLot());
                     dto.setFournisseurNom(reception.getAchat().getUser().getUsername());
 
-                    // Map produit data
                     Produit produit = reception.getProduit();
                     if (produit != null) {
                         ProduitDTO produitDTO = new ProduitDTO();
@@ -151,5 +148,20 @@ public class ReceptionController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching receptions: " + e.getMessage());
         }
+    }
+
+    // ✅ Nouvelle méthode pour le bouton "Clôturer"
+    @PutMapping("/achat/{achatId}/cloturer")
+    public ResponseEntity<?> cloturerManuellementReception(@PathVariable Integer achatId) {
+        Achat achat = achatRepository.findById(achatId).orElse(null);
+
+        if (achat == null) {
+            return ResponseEntity.badRequest().body("Achat introuvable.");
+        }
+
+        achat.setStatut("Réceptionné");
+        achatRepository.save(achat);
+
+        return ResponseEntity.ok().body("Achat clôturé manuellement avec succès.");
     }
 }

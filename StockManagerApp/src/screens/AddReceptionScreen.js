@@ -23,6 +23,41 @@ const AddReceptionScreen = ({ navigation, route }) => {
       statut: '', // Statut de réception
     }))
   );
+
+  const handleManualCloture = () => {
+    setLoading(true);
+  
+    fetch(`${API_BASE_URL}/achat/${achat.idAchat}/cloturer`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(res => {
+        if (res.ok) {
+          Toast.show({
+            type: 'success',
+            text1: 'Succès',
+            text2: 'Achat clôturé manuellement',
+          });
+          navigation.navigate('BuysScreen', { refresh: true });
+        } else {
+          return res.json().then(err => {
+            throw new Error(err.message || 'Erreur lors de la clôture');
+          });
+        }
+      })
+      .catch(error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: String(error.message || 'Erreur de connexion au serveur'),
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+  
+  
   const [openIndex, setOpenIndex] = useState(null);
   const [datePickerIdx, setDatePickerIdx] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -420,20 +455,23 @@ const AddReceptionScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         )}
         <TouchableOpacity
-          style={{
-            backgroundColor: '#22c55e',
-            paddingVertical: 10,
-            paddingHorizontal: 32,
-            borderRadius: 8,
-            minWidth: 100,
-            alignItems: 'center',
-            opacity: loading ? 0.5 : 1, // Désactiver visuellement si loading
-          }}
-          onPress={() => handleReception("Receptionné")}
-          disabled={loading} // Désactiver le bouton pendant le chargement
-        >
-          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Clôturer</Text>
-        </TouchableOpacity>
+  style={{
+    backgroundColor: '#22c55e',
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    minWidth: 100,
+    alignItems: 'center',
+    opacity: loading ? 0.5 : 1,
+  }}
+  onPress={handleManualCloture}
+  disabled={loading}
+>
+  <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>
+    Clôturer
+  </Text>
+</TouchableOpacity>
+
       </View>
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>
         <BottomNavBar navigation={navigation} currentRoute="BuysScreen" />
