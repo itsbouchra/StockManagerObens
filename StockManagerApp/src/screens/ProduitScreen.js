@@ -46,7 +46,7 @@ const ProduitScreen = ({ route, navigation }) => {
       <TopBar
         title="Produits"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="ProductAD"
+        activeLeftIcon="stock"
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
         notificationCount={unreadNotificationsCount}
         onSettingsPress={() => navigation.navigate('Settings')}

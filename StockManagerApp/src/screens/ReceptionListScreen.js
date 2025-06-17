@@ -52,7 +52,7 @@ const ReceptionListScreen = ({ navigation, route }) => {
       <TopBar
         title="Réceptions"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="stock"
+        activeLeftIcon="BuysScreen"
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
         notificationCount={unreadNotificationsCount}
         onSettingsPress={() => navigation.navigate('Settings')}

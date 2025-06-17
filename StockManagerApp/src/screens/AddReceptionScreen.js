@@ -202,7 +202,7 @@ const AddReceptionScreen = ({ navigation, route }) => {
       <TopBar
         title="Ajouter Réception"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="stock"
+        activeLeftIcon="BuysScreen"
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
         notificationCount={unreadNotificationsCount}
         onSettingsPress={() => navigation.navigate('Settings')}

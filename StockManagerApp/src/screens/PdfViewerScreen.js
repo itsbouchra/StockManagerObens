@@ -117,7 +117,7 @@ const PdfViewerScreen = ({ navigation, route }) => {
       <TopBar
         title="Facture"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="home"
+        activeLeftIcon="BuysScreen "
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
         notificationCount={unreadNotificationsCount}
         onSettingsPress={() => navigation.navigate('Settings')}

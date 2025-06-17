@@ -98,7 +98,7 @@ const ProductReceptionScreen = ({ route, navigation }) => {
           Total en stock : {totalStock}
         </Text>
       </View>
-      <BottomNavBar navigation={navigation} currentRoute="ProductReception" />
+      <BottomNavBar navigation={navigation} currentRoute="ProductStock" />
     </View>
   );
 };

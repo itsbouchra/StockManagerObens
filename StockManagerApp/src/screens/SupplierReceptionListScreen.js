@@ -55,7 +55,7 @@ const SupplierReceptionListScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <SupplierTopBar
-        title="Réceptions"
+        title="Livraisons"
         onGoBack={() => navigation.goBack()}
         iconName="home"
         active={true}
@@ -63,7 +63,7 @@ const SupplierReceptionListScreen = ({ route, navigation }) => {
       />
 
       <Text style={styles.screenTitle}>
-        Réceptions pour Achat #{achat.idAchat}
+        Livraisons pour vente #{achat.idAchat}
       </Text>
 
       <FlatList
