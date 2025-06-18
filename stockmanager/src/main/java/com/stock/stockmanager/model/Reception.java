@@ -39,6 +39,9 @@ public class Reception {
 
     private Integer quantite;
 
+    @Column(name = "quantite_restante")
+    private Integer quantiteRestante;
+
     private String statut; // conf / semi-conf / non-conf
 
     @Column(name = "ref_lot")
@@ -47,7 +50,7 @@ public class Reception {
     @OneToMany(mappedBy = "reception")
     private List<Activity> mouvements;
 
-    // Getters and setters...
+    // ----- GETTERS & SETTERS -----
 
     public Integer getId() {
         return id;
@@ -56,6 +59,7 @@ public class Reception {
     public void setId(Integer id) {
         this.id = id;
     }
+
     public Achat getAchat() {
         return achat;
     }
@@ -88,6 +92,14 @@ public class Reception {
         this.quantite = quantite;
     }
 
+    public Integer getQuantiteRestante() {
+        return quantiteRestante;
+    }
+
+    public void setQuantiteRestante(Integer quantiteRestante) {
+        this.quantiteRestante = quantiteRestante;
+    }
+
     public String getStatut() {
         return statut;
     }
@@ -96,7 +108,6 @@ public class Reception {
         this.statut = statut;
     }
 
-   
     public String getRefLot() {
         return refLot;
     }

@@ -9,23 +9,50 @@ import {
   User,
 } from 'lucide-react-native';
 
+// Définir les routes principales et les routes liées à chaque icône
 const NAV_ITEMS = [
-  { route: 'Dashboard', Icon: Home },
- { route: 'SalesListScreen', Icon: DollarSign, relatedRoutes: ['SalesListScreen', 'AddSaleScreen'] },
-  { route: 'BuysScreen', Icon: ShoppingCart },
-  { route: 'ProductAD', Icon: Package },
-  { route: 'Categorie', Icon: Boxes, iconRoute: 'ProductStock' },
-  { route: 'Profile', Icon: User },
+  {
+    route: 'Dashboard',
+    Icon: Home,
+  },
+  {
+    route: 'SalesListScreen',
+    Icon: DollarSign,
+    relatedRoutes: ['SalesListScreen', 'AddSaleScreen', 'AddLivraisonScreen'], // ✅ ajouté ici
+  },
+  {
+    route: 'BuysScreen',
+    Icon: ShoppingCart,
+  },
+  {
+    route: 'ProductAD',
+    Icon: Package,
+  },
+  {
+    route: 'Categorie',
+    Icon: Boxes,
+    relatedRoutes: ['Categorie', 'ProductStock'], // si tu veux
+  },
+  {
+    route: 'Profile',
+    Icon: User,
+  },
 ];
 
 const BottomNavBar = ({ navigation, currentRoute }) => {
-  const iconColor = (routeName) =>
-    routeName === currentRoute ? '#E1B12C' : '#FFFFFF';
+  const iconColor = (routeName, relatedRoutes) =>
+    routeName === currentRoute ||
+    (relatedRoutes && relatedRoutes.includes(currentRoute))
+      ? '#E1B12C'
+      : '#FFFFFF';
 
   return (
     <View style={styles.navContainer}>
-      {NAV_ITEMS.map(({ route, Icon, iconRoute }) => {
-        const active = currentRoute === (iconRoute || route);
+      {NAV_ITEMS.map(({ route, Icon, relatedRoutes }) => {
+        const isActive =
+          route === currentRoute ||
+          (relatedRoutes && relatedRoutes.includes(currentRoute));
+
         return (
           <TouchableOpacity
             key={route}
@@ -33,13 +60,13 @@ const BottomNavBar = ({ navigation, currentRoute }) => {
             activeOpacity={0.75}
             style={[
               styles.iconWrapper,
-              active && styles.iconActiveBackground,
+              isActive && styles.iconActiveBackground,
             ]}
           >
             <Icon
               size={26}
-              color={iconColor(iconRoute || route)}
-              style={active && styles.iconActive}
+              color={iconColor(route, relatedRoutes)}
+              style={isActive && styles.iconActive}
             />
           </TouchableOpacity>
         );
@@ -56,7 +83,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 14,
-    height: 73, // reduced height
+    height: 73,
     backgroundColor: 'rgba(112, 130, 56, 0.95)',
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,
@@ -67,7 +94,7 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   iconWrapper: {
-    padding: 10, // slightly reduced padding for compact feel
+    padding: 10,
     borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.08)',
     justifyContent: 'center',
@@ -81,4 +108,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomNavBar;
+export default BottomNavBar;

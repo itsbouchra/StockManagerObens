@@ -100,7 +100,7 @@ const ProductsAdmin = ({ route, navigation }) => {
 
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item, index) => (item.id_produit !== undefined && item.id_produit !== null) ? item.id_produit.toString() : `_temp_${index}`}
+        keyExtractor={(item, index) => (item.id !== undefined && item.id !== null) ? item.id.toString() : `_temp_${index}`}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
         renderItem={({ item }) => (
           <TouchableOpacity
@@ -115,7 +115,6 @@ const ProductsAdmin = ({ route, navigation }) => {
                 });
                 return;
               }
-              console.log("Navigating to details with ID:", product_id_to_navigate);
               navigation.navigate('ProductDetailScreen', { id_produit: product_id_to_navigate });
             }}
             style={{

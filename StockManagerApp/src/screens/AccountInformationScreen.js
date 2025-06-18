@@ -6,15 +6,18 @@ import {
   TextInput,
   TouchableOpacity,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { ArrowLeft, PencilLine, User } from 'lucide-react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function AccountInformationScreen({ navigation, route }) {
   const utilisateurParDefaut = {
-    username: 'Achraf EL MOUDEN',
-    email: 'achrafelmouden@gmail.com',
-    phone: '06 44 55 66 77 88',
-    role: 'Admin',
+    id_user: null,
+    username: '',
+    email: '',
+    telephone: '',
+    role: '',
   };
 
   const donneesInitiales = { ...utilisateurParDefaut, ...(route.params?.userData || {}) };
@@ -28,7 +31,7 @@ export default function AccountInformationScreen({ navigation, route }) {
   const champs = [
     { label: "Nom d'utilisateur", key: 'username' },
     { label: 'Gmail', key: 'email' },
-    { label: 'Téléphone', key: 'phone' },
+    { label: 'Téléphone', key: 'telephone' },
     { label: 'Rôle', key: 'role' },
   ];
 
@@ -36,9 +39,30 @@ export default function AccountInformationScreen({ navigation, route }) {
     setFormulaire({ ...formulaire, [cle]: valeur });
   };
 
-  const gererValidation = () => {
-    console.log('Données soumises :', formulaire);
-    navigation.navigate('Profile', { updatedData: formulaire });
+  const gererValidation = async () => {
+    if (!formulaire.id_user) {
+      Alert.alert('Erreur', 'ID utilisateur manquant.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://10.0.2.2:8080/api/users/${formulaire.id_user}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formulaire),
+      });
+
+      if (response.ok) {
+        Alert.alert('Succès', 'Informations mises à jour.');
+        await AsyncStorage.setItem('userData', JSON.stringify(formulaire));
+        navigation.navigate('Profile', { updatedData: formulaire });
+      } else {
+        Alert.alert('Erreur', 'Échec de la mise à jour.');
+      }
+    } catch (err) {
+      console.error('Erreur réseau :', err);
+      Alert.alert('Erreur', 'Problème de connexion au serveur.');
+    }
   };
 
   const gererAnnulation = () => {
@@ -48,7 +72,6 @@ export default function AccountInformationScreen({ navigation, route }) {
   return (
     <ImageBackground source={require('../assets/bg.jpg')} style={styles.background}>
       <View style={styles.container}>
-        {/* Header */}
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color="#333" />
         </TouchableOpacity>
@@ -58,7 +81,6 @@ export default function AccountInformationScreen({ navigation, route }) {
           <Text style={styles.title}>Informations du compte</Text>
         </View>
 
-        {/* Form fields */}
         {champs.map(({ label, key }) => (
           <View key={key} style={styles.inputRow}>
             <Text style={styles.label}>{label} :</Text>
@@ -75,7 +97,6 @@ export default function AccountInformationScreen({ navigation, route }) {
           </View>
         ))}
 
-        {/* Buttons */}
         <View style={styles.buttonRow}>
           <TouchableOpacity style={styles.cancelButton} onPress={gererAnnulation}>
             <Text style={styles.cancelText}>Annuler</Text>
@@ -151,7 +172,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#FFF4B1', // ✅ Jaune clair
+    backgroundColor: '#FFF4B1',
     padding: 12,
     marginRight: 10,
     borderRadius: 10,
@@ -159,7 +180,7 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     flex: 1,
-    backgroundColor: '#FFF4B1', // ✅ Jaune clair
+    backgroundColor: '#FFF4B1',
     padding: 12,
     marginLeft: 10,
     borderRadius: 10,

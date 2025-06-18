@@ -3,6 +3,8 @@ package com.stock.stockmanager.model;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -16,6 +18,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "livraison")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Livraison {
 
     @Id
@@ -23,23 +26,20 @@ public class Livraison {
     @Column(name = "id_livraison")
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_vente")
     private Vente vente;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_produit")
     private Produit produit;
-
-    private Integer quantite;
 
     @Column(name = "date_livraison")
     private LocalDate dateLivraison;
 
-    @Column(name = "ref_produit")
-    private String refProduit;
+    private Integer quantite;
 
-    private String statut;
+    private String statut; // conf / semi-conf / non-conf
 
     @Column(name = "ref_lot")
     private String refLot;
@@ -49,20 +49,20 @@ public class Livraison {
 
     // Getters and setters...
 
-    public Vente getVente() {
-        return vente;
-    }
-
-    public void setVente(Vente vente) {
-        this.vente = vente;
-    }
-
     public Integer getId() {
         return id;
     }
 
     public void setId(Integer id) {
         this.id = id;
+    }
+
+    public Vente getVente() {
+        return vente;
+    }
+
+    public void setVente(Vente vente) {
+        this.vente = vente;
     }
 
     public Produit getProduit() {
@@ -73,14 +73,6 @@ public class Livraison {
         this.produit = produit;
     }
 
-    public Integer getQuantite() {
-        return quantite;
-    }
-
-    public void setQuantite(Integer quantite) {
-        this.quantite = quantite;
-    }
-
     public LocalDate getDateLivraison() {
         return dateLivraison;
     }
@@ -89,12 +81,12 @@ public class Livraison {
         this.dateLivraison = dateLivraison;
     }
 
-    public String getRefProduit() {
-        return refProduit;
+    public Integer getQuantite() {
+        return quantite;
     }
 
-    public void setRefProduit(String refProduit) {
-        this.refProduit = refProduit;
+    public void setQuantite(Integer quantite) {
+        this.quantite = quantite;
     }
 
     public String getStatut() {

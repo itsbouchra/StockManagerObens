@@ -6,7 +6,6 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
-  Image,
 } from 'react-native';
 import {
   Search,
@@ -17,6 +16,7 @@ import {
 } from 'lucide-react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import BottomNavBar from '../components/BottomNavBar';
+import TopBar from '../components/TopBar';
 
 export default function UsersScreen({ navigation }) {
   const [users, setUsers] = useState([]);
@@ -51,30 +51,29 @@ export default function UsersScreen({ navigation }) {
       style={styles.userItem}
       onPress={() => navigation.navigate('UserInfo', { user: item })}
     >
-      <Image source={require('../assets/sophie.jpg')} style={styles.avatar} />
+      <View style={styles.avatarCircle}>
+        <Text style={styles.avatarInitials}>
+          {item.username ? item.username.charAt(0).toUpperCase() : '?'}
+        </Text>
+      </View>
       <View style={styles.info}>
         <Text style={styles.name}>{item.username}</Text>
         <Text style={styles.phone}>{item.telephone}</Text>
       </View>
-      
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       {/* En-tête */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <Settings size={25} color="#f5c518" />
-          <Text style={styles.headerTitle}>Paramètres</Text>
-        </View>
-        <TouchableOpacity>
-          <Bell size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <TopBar
+  title="Paramètres"
+  activeLeftIcon="settings"
+  onGoBack={() => navigation.goBack()}
+  onNotificationPress={() => console.log('Notifications')}
+  onSettingsPress={() => console.log('Settings')}
+/>
+
 
       <Text style={styles.title}>Utilisateurs</Text>
 
@@ -90,7 +89,7 @@ export default function UsersScreen({ navigation }) {
         />
       </View>
 
-      {/* Boutons de filtre par rôle */}
+      {/* Filtres par rôle */}
       <View style={styles.filterButtons}>
         {['all', 'admin', 'fournisseur', 'client'].map(role => (
           <TouchableOpacity
@@ -202,11 +201,23 @@ const styles = StyleSheet.create({
     padding: 10,
     elevation: 1,
   },
-  avatar: { width: 46, height: 46, borderRadius: 23, marginRight: 12 },
+  avatarCircle: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#7a8b2d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarInitials: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   info: { flex: 1 },
   name: { fontWeight: 'bold', fontSize: 14, color: '#111' },
   phone: { color: '#666', fontSize: 13 },
-  options: { fontSize: 20, color: '#444' },
   actionButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -230,5 +241,5 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     backgroundColor: '#fff',
-  },
+  },
 });

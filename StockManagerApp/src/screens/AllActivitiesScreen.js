@@ -186,9 +186,11 @@ const AllActivitiesScreen = ({ navigation }) => {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={fetchAllActivities} />
           }
-          ListEmptyComponent={
-            <Text style={styles.emptyListText}>No activities found for selected filters.</Text>
-          }
+          ListEmptyComponent={() => (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+              <Text style={styles.emptyListText}>No activities found for selected filters.</Text>
+            </View>
+          )}
         />
       </View>
       <BottomNavBar navigation={navigation} currentRoute="Dashboard" />

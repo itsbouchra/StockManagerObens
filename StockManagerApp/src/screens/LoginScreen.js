@@ -14,24 +14,30 @@ import { User, Lock, Eye, EyeOff } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import loginBg from '../assets/login-bk.png';
 import Toast from 'react-native-toast-message';
+import { API_ENDPOINTS, handleApiError } from '../config/api';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
   const [secure, setSecure] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
     const loadCredentials = async () => {
-      const savedUsername = await AsyncStorage.getItem('rememberedUsername');
-      const savedPassword = await AsyncStorage.getItem('rememberedPassword');
-      const rememberFlag = await AsyncStorage.getItem('rememberMe');
+      try {
+        const savedUsername = await AsyncStorage.getItem('rememberedUsername');
+        const savedPassword = await AsyncStorage.getItem('rememberedPassword');
+        const rememberFlag = await AsyncStorage.getItem('rememberMe');
 
-      if (rememberFlag === 'true') {
-        setUsername(savedUsername || '');
-        setPassword(savedPassword || '');
-        setRemember(true);
+        if (rememberFlag === 'true') {
+          setUsername(savedUsername || '');
+          setPassword(savedPassword || '');
+          setRemember(true);
+        }
+      } catch (error) {
+        console.error('Error loading credentials:', error);
       }
     };
 
@@ -39,8 +45,19 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
+    if (!username || !password) {
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur de validation',
+        text2: 'Veuillez remplir tous les champs',
+        position: 'top',
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const response = await fetch('http://10.0.2.2:8080/api/users/login', {
+      const response = await fetch(API_ENDPOINTS.LOGIN, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -48,7 +65,6 @@ export default function LoginScreen() {
 
       if (response.ok) {
         const user = await response.json();
-        console.log('Login response:', user); // Debug log
 
         Toast.show({
           type: 'success',
@@ -57,56 +73,62 @@ export default function LoginScreen() {
           position: 'top',
         });
 
-        if (remember) {
-          await AsyncStorage.setItem('rememberedUsername', username);
-          await AsyncStorage.setItem('rememberedPassword', password);
-          await AsyncStorage.setItem('rememberMe', 'true');
-        } else {
-          await AsyncStorage.removeItem('rememberedUsername');
-          await AsyncStorage.removeItem('rememberedPassword');
-          await AsyncStorage.setItem('rememberMe', 'false');
-        }
-
-        // Store user data in AsyncStorage
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-
-        // Debug logs for role check
-        console.log('User role:', user.role);
-        console.log('Is supplier?', user.role === 'fournisseur');
-
-        // Redirect based on user role
-        setTimeout(() => {
-          if (user.role === 'fournisseur') {
-            console.log('Navigating to SupplierDashboard');
-            navigation.reset({
-              index: 0,
-              routes: [{ name: 'SupplierDashboard' }],
-            });
+        // Stockage local
+        try {
+          if (remember) {
+            await AsyncStorage.setItem('rememberedUsername', username);
+            await AsyncStorage.setItem('rememberedPassword', password);
+            await AsyncStorage.setItem('rememberMe', 'true');
           } else {
-            console.log('Navigating to Dashboard');
+            await AsyncStorage.removeItem('rememberedUsername');
+            await AsyncStorage.removeItem('rememberedPassword');
+            await AsyncStorage.setItem('rememberMe', 'false');
+          }
+
+          // Sauvegarde de l'utilisateur
+          await AsyncStorage.setItem('userData', JSON.stringify(user));
+
+          // Redirection selon le rôle
+          setTimeout(() => {
+            let routeName = 'Dashboard';
+
+            if (user.role === 'client') routeName = 'CustomerDashboard';
+            else if (user.role === 'fournisseur') routeName = 'SupplierDashboard';
+
             navigation.reset({
               index: 0,
-              routes: [{ name: 'Dashboard' }],
+              routes: [{ name: routeName, params: { userData: user } }],
             });
-          }
-        }, 1000);
+          }, 1000);
+        } catch (storageError) {
+          console.error('Error saving data:', storageError);
+          Toast.show({
+            type: 'error',
+            text1: 'Erreur de stockage',
+            text2: 'Impossible de sauvegarder les données',
+            position: 'top',
+          });
+        }
       } else {
+        const errorData = await response.json();
         Toast.show({
           type: 'error',
           text1: 'Erreur de connexion',
-          text2: 'Identifiants incorrects',
+          text2: errorData.message || 'Identifiants incorrects',
           position: 'top',
         });
         setPassword('');
       }
     } catch (error) {
-      console.error('Login error:', error); // Debug log
+      const errorInfo = handleApiError(error);
       Toast.show({
         type: 'error',
         text1: 'Erreur serveur',
-        text2: 'Connexion impossible au serveur',
+        text2: errorInfo.message,
         position: 'top',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,18 +148,19 @@ export default function LoginScreen() {
         <View style={styles.inputContainer}>
           <User size={20} color="green" />
           <TextInput
-            placeholder="Full Name"
+            placeholder="Nom d'utilisateur"
             placeholderTextColor="gray"
             value={username}
             onChangeText={setUsername}
             style={styles.input}
+            autoCapitalize="none"
           />
         </View>
 
         <View style={styles.inputContainer}>
           <Lock size={20} color="green" />
           <TextInput
-            placeholder="Password"
+            placeholder="Mot de passe"
             placeholderTextColor="gray"
             secureTextEntry={secure}
             value={password}
@@ -145,11 +168,7 @@ export default function LoginScreen() {
             style={styles.input}
           />
           <TouchableOpacity onPress={() => setSecure(!secure)}>
-            {secure ? (
-              <EyeOff size={20} color="#3d3d3d" />
-            ) : (
-              <Eye size={20} color="#3d3d3d" />
-            )}
+            {secure ? <EyeOff size={20} color="#3d3d3d" /> : <Eye size={20} color="#3d3d3d" />}
           </TouchableOpacity>
         </View>
 

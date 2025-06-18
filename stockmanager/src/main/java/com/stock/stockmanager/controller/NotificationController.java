@@ -20,7 +20,12 @@ import com.stock.stockmanager.service.NotificationService;
 
 @RestController
 @RequestMapping("/api/notifications")
-@CrossOrigin(origins = "http://10.0.2.2:8080")
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://10.0.2.2:8080",
+    "http://10.0.2.2:19006"
+}, allowCredentials = "true")
 public class NotificationController {
 
     @Autowired
@@ -42,34 +47,6 @@ public class NotificationController {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error sending notification: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/recipient/{role}/{recipientId}")
-    public ResponseEntity<?> getRecipientNotifications(
-            @PathVariable String role,
-            @PathVariable String recipientId) {
-        try {
-            List<Notification> notifications = notificationService.getNotificationsByRecipient(role, recipientId);
-            return ResponseEntity.ok(notifications);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error fetching recipient notifications: " + e.getMessage());
-        }
-    }
-
-    @GetMapping("/recipient/{role}/{recipientId}/unread/count")
-    public ResponseEntity<?> getUnreadRecipientNotificationsCount(
-            @PathVariable String role,
-            @PathVariable String recipientId) {
-        try {
-            long unreadCount = notificationService.getUnreadNotificationsCountByRecipient(role, recipientId);
-            return ResponseEntity.ok(unreadCount);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Error fetching unread recipient notifications count: " + e.getMessage());
         }
     }
 
@@ -126,4 +103,4 @@ public class NotificationController {
             return ResponseEntity.internalServerError().body("Error deleting notification: " + e.getMessage());
         }
     }
-} 
+}

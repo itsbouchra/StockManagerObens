@@ -104,6 +104,7 @@ public class VenteDTO {
     public List<LigneVenteDTO> getLignes() {
         return lignes;
     }
+
     public void setLignes(List<LigneVenteDTO> lignes) {
         this.lignes = lignes;
     }

@@ -65,4 +65,4 @@ public class NotificationRequest {
     public void setRecipientUsername(String recipientUsername) {
         this.recipientUsername = recipientUsername;
     }
-} 
+}

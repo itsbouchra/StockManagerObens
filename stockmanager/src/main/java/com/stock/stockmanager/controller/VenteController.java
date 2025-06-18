@@ -1,13 +1,15 @@
 package com.stock.stockmanager.controller;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.stock.stockmanager.dto.LigneVenteDTO;
 import com.stock.stockmanager.dto.VenteDTO;
@@ -28,14 +31,16 @@ import com.stock.stockmanager.model.Vente;
 import com.stock.stockmanager.repository.ProduitRepository;
 import com.stock.stockmanager.repository.UserRepository;
 import com.stock.stockmanager.repository.VenteRepository;
+import com.stock.stockmanager.service.PdfService;
+
 
 @RestController
 @RequestMapping("/api/ventes")
 @CrossOrigin(origins = "http://localhost:19006", allowCredentials = "true")
 
 public class VenteController {
-
-    private static final Logger logger = LoggerFactory.getLogger(VenteController.class);
+    @Autowired
+    private PdfService pdfService;
 
     @Autowired
     private VenteRepository venteRepository;
@@ -56,27 +61,18 @@ public class VenteController {
     @PostMapping
     public ResponseEntity<?> addVente(@RequestBody VenteDTO venteDTO) {
         try {
-            System.out.println("Début traitement vente...");
-            Vente vente = new Vente();
+            Vente newVente = new Vente();
+            newVente.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
+            newVente.setMontantTotal(venteDTO.getMontantTotal());
+            newVente.setStatut(venteDTO.getStatut());
 
-            System.out.println("Date : " + venteDTO.getDateVente());
-            vente.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
-
-            System.out.println("Montant total : " + venteDTO.getMontantTotal());
-            vente.setMontantTotal(venteDTO.getMontantTotal());
-
-            System.out.println("Statut : " + venteDTO.getStatut());
-            vente.setStatut(venteDTO.getStatut());
-
-            System.out.println("Client ID : " + venteDTO.getIdClient());
             User client = userRepository.findById(venteDTO.getIdClient())
                 .orElseThrow(() -> new RuntimeException("Client non trouvé"));
-            vente.setClient(client);
+            newVente.setClient(client);
 
             List<LigneVente> lignes = new ArrayList<>();
             if (venteDTO.getLignes() != null) {
                 for (LigneVenteDTO l : venteDTO.getLignes()) {
-                    System.out.println("Produit ID : " + l.getIdProduit());
                     if (l.getIdProduit() == null) {
                         throw new RuntimeException("idProduit manquant dans une ligne de vente");
                     }
@@ -85,7 +81,7 @@ public class VenteController {
                             .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
 
                     LigneVente ligne = new LigneVente();
-                    ligne.setVente(vente);
+                    ligne.setVente(newVente);
                     ligne.setProduit(produit);
                     ligne.setQuantite(l.getQuantite());
                     ligne.setPrix(l.getPrix());
@@ -95,18 +91,15 @@ public class VenteController {
                 }
             }
 
-            vente.setLignes(lignes);
-            venteRepository.save(vente);
+            newVente.setLignes(lignes);
+            venteRepository.save(newVente);
 
-            System.out.println("Vente enregistrée avec succès !");
             return ResponseEntity.ok("Vente enregistrée avec succès");
 
         } catch (RuntimeException e) {
-            logger.error("Error processing vente: ", e);
-            return ResponseEntity.status(500).body("Erreur serveur : " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur de validation : " + e.getMessage());
         } catch (Exception e) {
-            logger.error("Unexpected error processing vente: ", e);
-            return ResponseEntity.status(500).body("Erreur serveur inattendue");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur : " + e.getMessage());
         }
     }
 
@@ -116,73 +109,102 @@ public class VenteController {
                 .map(vente -> ResponseEntity.ok(new VenteDTO(vente)))
                 .orElse(ResponseEntity.notFound().build());
     }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
-        try {
-            return venteRepository.findById(id).map(vente -> {
-                // Nettoyer les lignes associées
-                if (vente.getLignes() != null) {
-                    vente.getLignes().clear();
-                }
-
-                // Nettoyer les livraisons associées
-                if (vente.getLivraisons() != null) {
-                    vente.getLivraisons().clear();
-                }
-
-                // Sauvegarder les relations nettoyées
-                venteRepository.save(vente);
-
-                // Supprimer la vente elle-même
-                venteRepository.delete(vente);
-
-                return ResponseEntity.ok("Vente supprimée avec succès");
-            }).orElse(ResponseEntity.status(404).body("Vente introuvable"));
-        } catch (RuntimeException e) {
-            logger.error("Error deleting vente: ", e);
-            return ResponseEntity.status(500).body("Erreur lors de la suppression : " + e.getMessage());
-        } catch (Exception e) {
-            logger.error("Unexpected error deleting vente: ", e);
-            return ResponseEntity.status(500).body("Erreur serveur inattendue");
-        }
+    @GetMapping("/{id}/produits")
+    public ResponseEntity<List<LigneVenteDTO>> getProduitsByVente(@PathVariable Integer id) {
+        return venteRepository.findById(id).map(vente -> {
+            List<LigneVenteDTO> lignes = vente.getLignes().stream()
+                    .map(LigneVenteDTO::new)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(lignes);
+        }).orElse(ResponseEntity.status(404).build());
     }
+@GetMapping("/{id}/facture.pdf")
+public ResponseEntity<ByteArrayResource> getFacturePdf(@PathVariable Integer id) {
+    try {
+        Vente vente = venteRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Vente introuvable"));
+
+        byte[] pdfBytes = pdfService.generatePdf(vente);
+        ByteArrayResource resource = new ByteArrayResource(pdfBytes);
+
+        return ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_PDF)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=facture_" + id + ".pdf")
+            .body(resource);
+    } catch (ResponseStatusException e) {
+        throw e;
+    } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erreur lors de la génération du PDF", e);
+    }
+}
+   
+
+  @DeleteMapping("/{id}")
+public ResponseEntity<?> deleteVente(@PathVariable Integer id) {
+    try {
+        Optional<Vente> venteOpt = venteRepository.findById(id);
+        if (venteOpt.isPresent()) {
+            Vente venteToDelete = venteOpt.get();
+            if (venteToDelete.getLignes() != null) {
+                venteToDelete.getLignes().clear();
+            }
+            if (venteToDelete.getLivraisons() != null) {
+                venteToDelete.getLivraisons().clear();
+            }
+            venteRepository.save(venteToDelete);
+            venteRepository.delete(venteToDelete);
+            return ResponseEntity.ok("Vente supprimée avec succès");
+        }
+        return ResponseEntity.status(404).body("Vente introuvable");
+    } catch (Exception e) {
+        return ResponseEntity.status(500).body("Erreur lors de la suppression : " + e.getMessage());
+    }
+}
+
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateVente(@PathVariable Integer id, @RequestBody VenteDTO venteDTO) {
-        return venteRepository.findById(id).map(vente -> {
-            vente.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
-            vente.setMontantTotal(venteDTO.getMontantTotal());
-            vente.setStatut(venteDTO.getStatut());
+        try {
+            Optional<Vente> venteOpt = venteRepository.findById(id);
+            if (venteOpt.isPresent()) {
+                Vente venteToUpdate = venteOpt.get();
+                venteToUpdate.setDateVente(LocalDate.parse(venteDTO.getDateVente()));
+                venteToUpdate.setMontantTotal(venteDTO.getMontantTotal());
+                venteToUpdate.setStatut(venteDTO.getStatut());
 
-            User client = userRepository.findById(venteDTO.getIdClient())
-                    .orElseThrow(() -> new RuntimeException("Client non trouvé"));
-            vente.setClient(client);
+                User client = userRepository.findById(venteDTO.getIdClient())
+                        .orElseThrow(() -> new RuntimeException("Client non trouvé"));
+                venteToUpdate.setClient(client);
 
-            vente.getLignes().clear();
-            if (venteDTO.getLignes() != null) {
-                for (LigneVenteDTO l : venteDTO.getLignes()) {
-                    if (l.getIdProduit() == null) {
-                        throw new RuntimeException("idProduit manquant dans une ligne de vente");
+                venteToUpdate.getLignes().clear();
+                if (venteDTO.getLignes() != null) {
+                    for (LigneVenteDTO l : venteDTO.getLignes()) {
+                        if (l.getIdProduit() == null) {
+                            throw new RuntimeException("idProduit manquant dans une ligne de vente");
+                        }
+
+                        Produit produit = produitRepository.findById(l.getIdProduit())
+                                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+
+                        LigneVente ligne = new LigneVente();
+                        ligne.setVente(venteToUpdate);
+                        ligne.setProduit(produit);
+                        ligne.setQuantite(l.getQuantite());
+                        ligne.setPrix(l.getPrix());
+                        ligne.setTotal(l.getTotal());
+
+                        venteToUpdate.getLignes().add(ligne);
                     }
-
-                    Produit produit = produitRepository.findById(l.getIdProduit())
-                            .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
-
-                    LigneVente ligne = new LigneVente();
-                    ligne.setVente(vente);
-                    ligne.setProduit(produit);
-                    ligne.setQuantite(l.getQuantite());
-                    ligne.setPrix(l.getPrix());
-                    ligne.setTotal(l.getTotal());
-
-                    vente.getLignes().add(ligne);
                 }
+
+                venteRepository.save(venteToUpdate);
+                return ResponseEntity.ok("Vente mise à jour");
             }
-
-            venteRepository.save(vente);
-            return ResponseEntity.ok("Vente mise à jour");
-
-        }).orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.notFound().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erreur de validation : " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur serveur : " + e.getMessage());
+        }
     }
 }

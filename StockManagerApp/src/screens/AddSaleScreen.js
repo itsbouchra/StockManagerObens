@@ -11,7 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { ArrowLeft, DollarSign, Bell, Settings } from 'lucide-react-native';
+import TopBar from '../components/TopBar';
+
 import BottomNavBar from '../components/BottomNavBar';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Toast from 'react-native-toast-message';
@@ -113,39 +114,31 @@ export default function AddSaleScreen({ navigation }) {
       const response = await fetch(`${API_BASE_URL}/api/ventes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(vente),
+        body: JSON.stringify(vente)
       });
 
       if (response.ok) {
-        navigation.navigate('SalesListScreen', { refresh: true });
+        Alert.alert('Succès', 'Vente ajoutée avec succès');
+        navigation.goBack();
       } else {
         const errText = await response.text();
-        Alert.alert('Erreur', 'Impossible d’ajouter la vente.\n' + errText);
+        Alert.alert('Erreur', `Impossible d'ajouter la vente.\n${errText}`);
       }
     } catch (err) {
-      Alert.alert('Erreur réseau', 'Vérifie ta connexion ou ton backend.');
+      Alert.alert('Erreur', `Erreur lors de l'ajout de la vente: ${err.message}`);
     }
   };
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <DollarSign size={22} color="#f5c518" />
-          <Text style={styles.headerTitle}>Ventes</Text>
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <TouchableOpacity>
-            <Bell size={20} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-            <Settings size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <TopBar
+  title="Ventes"
+  activeLeftIcon="ventes"
+  onGoBack={() => navigation.goBack()}
+  onNotificationPress={() => console.log('Notifications')}
+  onSettingsPress={() => navigation.navigate('Settings')}
+/>
+
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Text style={styles.title}>Ajouter une vente</Text>
@@ -191,7 +184,7 @@ export default function AddSaleScreen({ navigation }) {
         <View style={styles.dropdown}>
           <Picker selectedValue={statut} onValueChange={setStatut}>
             <Picker.Item label="en attente" value="en attente" />
-            <Picker.Item label="confirmée" value="confirmée" />
+            <Picker.Item label="livrée" value="livrée" />
             <Picker.Item label="annulée" value="annulée" />
           </Picker>
         </View>

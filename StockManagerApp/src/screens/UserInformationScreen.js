@@ -1,83 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity,
-  Image, StyleSheet, Alert, PermissionsAndroid, Platform,
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
-import { ArrowLeft, Settings, Eye, Bell, Camera } from 'lucide-react-native';
-import DropDownPicker from 'react-native-dropdown-picker';
-import { launchImageLibrary } from 'react-native-image-picker';
-import BottomNavBar from '../components/BottomNavBar';
-import { ScrollView } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { API_ENDPOINTS, handleApiError } from '../config/api';
+import Toast from 'react-native-toast-message';
+import TopBar from '../components/TopBar';
 
-export default function UserInformationScreen({ route, navigation }) {
+export default function UserInformationScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
   const { user } = route.params;
-  const [form, setForm] = useState(user);
-  const [showPassword, setShowPassword] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [imageUri, setImageUri] = useState(null);
 
-  const handleChange = (key, value) => {
-    setForm({ ...form, [key]: value });
+  const [form, setForm] = useState({
+    id_user: user.id_user,
+    username: user.username,
+    email: user.email,
+    password: '',
+    confirmPassword: '',
+    role: user.role,
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!form.username) newErrors.username = 'Le nom d\'utilisateur est requis';
+    if (!form.email) newErrors.email = 'L\'email est requis';
+    if (!form.email.includes('@')) newErrors.email = 'Email invalide';
+    if (form.password && form.password.length < 6) {
+      newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+    }
+    if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = 'Les mots de passe ne correspondent pas';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const requestPermission = async () => {
-    if (Platform.OS === 'android') {
-      try {
-        if (Platform.Version >= 33) {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
-            {
-              title: 'Permission requise',
-              message: 'L’application a besoin d’accéder à vos images.',
-              buttonPositive: 'OK',
-              buttonNegative: 'Annuler',
-            }
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        } else {
-          const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-            {
-              title: 'Permission requise',
-              message: 'L’application a besoin d’accéder à votre galerie.',
-              buttonPositive: 'OK',
-              buttonNegative: 'Annuler',
-            }
-          );
-          return granted === PermissionsAndroid.RESULTS.GRANTED;
-        }
-      } catch (err) {
-        console.warn('Erreur permission:', err);
-        return false;
-      }
-    }
-    return true;
-  };
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
-  const pickImage = async () => {
-    const permission = await requestPermission();
-    if (!permission) {
-      Alert.alert('Permission refusée', 'Impossible d’accéder à la galerie.');
-      return;
-    }
-
-    launchImageLibrary({ mediaType: 'photo' }, (response) => {
-      if (response.didCancel) return;
-      if (response.errorCode) {
-        Alert.alert('Erreur', response.errorMessage);
-      } else {
-        setImageUri(response.assets[0].uri);
-        // Tu peux aussi stocker l'URI dans le form si tu veux l'envoyer plus tard
-      }
-    });
-  };
-
-  const handleUpdate = async () => {
-    if (!form.username || !form.email || !form.password || !form.telephone || !form.role) {
-      Alert.alert('Erreur', 'Tous les champs sont obligatoires.');
-      return;
-    }
-
+    setLoading(true);
     try {
       const res = await fetch(`http://10.0.2.2:8080/api/users/${form.id_user}`, {
         method: 'PUT',
@@ -85,234 +57,154 @@ export default function UserInformationScreen({ route, navigation }) {
         body: JSON.stringify(form),
       });
 
-      const data = await res.text();
-
-      if (res.ok) {
-        Alert.alert('Succès', 'Utilisateur mis à jour');
-        navigation.goBack();
-      } else {
-        Alert.alert('Erreur', data || 'Échec de la mise à jour');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour');
       }
-    } catch (err) {
-      Alert.alert('Erreur réseau', err.message);
-    }
-  };
 
-  const handleDelete = async () => {
-    try {
-      const res = await fetch(`http://10.0.2.2:8080/api/users/${form.id_user}`, {
-        method: 'DELETE',
+      Toast.show({
+        type: 'success',
+        text1: 'Profil mis à jour',
+        text2: 'Vos informations ont été modifiées avec succès',
+        position: 'top',
       });
-      if (res.ok) {
-        Alert.alert('Utilisateur supprimé');
-        navigation.goBack();
-      } else {
-        Alert.alert('Erreur', 'Suppression échouée');
-      }
+
+      navigation.goBack();
     } catch (err) {
-      Alert.alert('Erreur réseau', err.message);
+      const errorInfo = handleApiError(err);
+      Toast.show({
+        type: 'error',
+        text1: 'Erreur',
+        text2: errorInfo.message,
+        position: 'top',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-  <View style={styles.container}>
-    {/* En-tête */}
-    <View style={styles.header}>
-      <View style={styles.headerLeft}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconButton}>
-          <ArrowLeft size={22} color="#fff" />
-        </TouchableOpacity>
-        <Settings size={25} color="#f5c518" />
-        <Text style={styles.headerTitle}>Paramètres</Text>
-      </View>
-      <TouchableOpacity>
-        <Bell size={20} color="#fff" />
-      </TouchableOpacity>
-    </View>
-
-    {/* Scrollable content */}
-    <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>Informations de l'utilisateur</Text>
-
-      <View style={styles.avatarContainer}>
-        <TouchableOpacity onPress={pickImage}>
-          <View>
-            <Image
-              source={imageUri ? { uri: imageUri } : require('../assets/sophie.jpg')}
-              style={styles.avatar}
-            />
-            <View style={styles.cameraIconWrapper}>
-              <Camera size={16} color="#fff" />
-            </View>
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.form}>
-        <Text>Nom d'utilisateur :</Text>
-        <TextInput style={styles.input} value={form.username} onChangeText={(t) => handleChange('username', t)} />
-
-        <Text>Email :</Text>
-        <TextInput style={styles.input} value={form.email} onChangeText={(t) => handleChange('email', t)} />
-
-        <Text>Mot de passe :</Text>
-        <View style={styles.passwordWrapper}>
+    <View style={styles.container}>
+      <TopBar
+        title="Informations du compte"
+        onGoBack={() => navigation.goBack()}
+        onNotificationPress={() => navigation.navigate('Notifications')}
+        onSettingsPress={() => navigation.navigate('Settings')}
+      />
+      <ScrollView style={styles.content}>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Nom d'utilisateur</Text>
           <TextInput
-            style={styles.passwordInput}
-            secureTextEntry={!showPassword}
-            value={form.password || ''}
-            onChangeText={(t) => handleChange('password', t)}
+            style={[styles.input, errors.username && styles.inputError]}
+            value={form.username}
+            onChangeText={(text) => setForm({ ...form, username: text })}
+            placeholder="Nom d'utilisateur"
           />
-          <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Eye size={20} color="#444" />
-          </TouchableOpacity>
+          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
         </View>
 
-        <Text>Téléphone :</Text>
-        <TextInput
-          style={styles.input}
-          value={form.telephone || ''}
-          onChangeText={(t) => handleChange('telephone', t)}
-        />
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={[styles.input, errors.email && styles.inputError]}
+            value={form.email}
+            onChangeText={(text) => setForm({ ...form, email: text })}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+        </View>
 
-        <Text>Rôle :</Text>
-        <DropDownPicker
-          open={dropdownOpen}
-          value={form.role}
-          items={[
-            { label: 'Admin', value: 'admin' },
-            { label: 'Fournisseur', value: 'fournisseur' },
-            { label: 'Client', value: 'client' },
-          ]}
-          setOpen={setDropdownOpen}
-          setValue={(callback) => {
-            const newRole = callback(form.role);
-            handleChange('role', newRole);
-          }}
-          style={styles.dropdown}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Nouveau mot de passe</Text>
+          <TextInput
+            style={[styles.input, errors.password && styles.inputError]}
+            value={form.password}
+            onChangeText={(text) => setForm({ ...form, password: text })}
+            placeholder="Laissez vide pour ne pas changer"
+            secureTextEntry
+          />
+          {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+        </View>
 
-    {/* Fixed Bottom */}
-    <View style={styles.bottomActions}>
-      <View style={styles.actions}>
-        <TouchableOpacity style={styles.btnEdit} onPress={handleUpdate}>
-          <Text style={styles.btnText}>Modifier</Text>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Confirmer le mot de passe</Text>
+          <TextInput
+            style={[styles.input, errors.confirmPassword && styles.inputError]}
+            value={form.confirmPassword}
+            onChangeText={(text) => setForm({ ...form, confirmPassword: text })}
+            placeholder="Confirmez le nouveau mot de passe"
+            secureTextEntry
+          />
+          {errors.confirmPassword && (
+            <Text style={styles.errorText}>{errors.confirmPassword}</Text>
+          )}
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Enregistrer les modifications</Text>
+          )}
         </TouchableOpacity>
-        <TouchableOpacity style={styles.btnDelete} onPress={handleDelete}>
-          <Text style={styles.btnText}>Supprimer</Text>
-        </TouchableOpacity>
-      </View>
-      <BottomNavBar navigation={navigation} currentRoute="Users" />
+      </ScrollView>
     </View>
-  </View>
-);
-
-
+  );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: {
-  paddingBottom: 200, // Assez pour voir le dropdown + boutons + navbar
-},
-
-  header: {
-    flexDirection: 'row',
-    backgroundColor: '#7a8b2d',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerTitle: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 20,
-    fontFamily: 'serif',
+  content: {
+    flex: 1,
+    padding: 20,
   },
-  iconButton: { marginRight: 8 },
-  title: {
-    textAlign: 'center',
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginTop: 20,
-    fontFamily: 'serif',
-    color: '#000',
+  formGroup: {
+    marginBottom: 20,
   },
-  avatarContainer: { alignItems: 'center', marginVertical: 20 },
-  avatar: { width: 100, height: 100, borderRadius: 50 },
-  cameraIcon: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 4,
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
   },
-  form: {
-  paddingHorizontal: 20,
-  gap: 10,
-},
-
   input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#e5edd6',
-    padding: 10,
-    borderRadius: 10,
-  },
-  passwordWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    backgroundColor: '#e5edd6',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-  },
-  passwordInput: { flex: 1, paddingVertical: 10 },
-  dropdown: { marginTop: 10, borderRadius: 10 },
-  bottomActions: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+  inputError: {
+    borderColor: '#dc2626',
   },
-  btnEdit: {
-    flex: 1,
-    backgroundColor: '#FFF4B1',
-    paddingVertical: 12,
-    marginRight: 10,
-    borderRadius: 20,
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  button: {
+    backgroundColor: '#6b8e23',
+    padding: 16,
+    borderRadius: 8,
     alignItems: 'center',
+    marginTop: 20,
   },
-  btnDelete: {
-    flex: 1,
-    backgroundColor: '#FFF4B1',
-    paddingVertical: 12,
-    marginLeft: 10,
-    borderRadius: 20,
-    alignItems: 'center',
+  buttonDisabled: {
+    opacity: 0.7,
   },
-  btnText: { fontWeight: 'bold' },
-  cameraIconWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#7a8b2d', // Vert olive comme demandé
-    borderRadius: 999,
-    padding: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

@@ -14,6 +14,7 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import { ArrowLeft, Settings, Bell, Eye, UploadCloud } from 'lucide-react-native';
 import BottomNavBar from '../components/BottomNavBar';
 import { launchImageLibrary } from 'react-native-image-picker';
+import TopBar from '../components/TopBar';
 
 
 
@@ -97,18 +98,14 @@ export default function AddUserScreen({ navigation }) {
   <SafeAreaView style={styles.container}>
     <View style={{ flex: 1 }}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <ArrowLeft size={22} color="#fff" />
-          </TouchableOpacity>
-          <Settings size={24} color="#f5c518" />
-          <Text style={styles.headerTitle}>Paramètres</Text>
-        </View>
-        <TouchableOpacity>
-          <Bell size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <TopBar
+  title="Paramètres"
+  activeLeftIcon="settings"
+  onGoBack={() => navigation.goBack()}
+  onNotificationPress={() => console.log('Notifications')}
+  onSettingsPress={() => console.log('Settings')}
+/>
+
 
       {/* Scrollable content */}
       <ScrollView
@@ -323,6 +320,6 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
+    shadowRadius: 4,
+  },
 });

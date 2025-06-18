@@ -17,4 +17,7 @@ public interface ReceptionRepository extends JpaRepository<Reception, Integer> {
 	List<Reception> findByProduitId(Integer produitId);
 
 	long countByStatut(String statut);
+
+	@Query("SELECT r FROM Reception r WHERE r.produit.id = :produitId AND r.quantiteRestante > 0 ORDER BY r.dateReception ASC")
+	List<Reception> findLotsFIFOByProduitId(@Param("produitId") Integer produitId);
 }

@@ -38,7 +38,7 @@ public class Vente {
 
     private String statut;
 
-    @OneToMany(mappedBy = "vente", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "vente", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<LigneVente> lignes;
 

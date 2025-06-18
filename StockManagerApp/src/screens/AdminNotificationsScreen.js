@@ -29,7 +29,7 @@ const AdminNotificationsScreen = ({ navigation }) => {
     console.log(`Fetching notifications for ADMIN with id_user: ${user.id_user}`);
     try {
       const response = await fetch(
-        `http://10.0.2.2:8080/api/notifications/recipient/ADMIN/${user.id_user}`
+        `http://10.0.2.2:8080/api/notifications/user/admin/${user.id_user}`
       );
       console.log("API Response status:", response.status);
       if (!response.ok) {

@@ -19,6 +19,7 @@ public class NotificationService {
 
     @Autowired
     private NotificationRepository notificationRepository;
+    
     @Autowired
     private UserRepository userRepository;
 
@@ -28,38 +29,37 @@ public class NotificationService {
             if (senderIdString == null || senderIdString.equals("undefined")) {
                 throw new IllegalArgumentException("Invalid sender ID: cannot be null or undefined");
             }
-            
-            Integer senderId = Integer.valueOf(senderIdString.trim());
 
+            Integer senderId = Integer.valueOf(senderIdString.trim());
             User recipientUser;
             String finalRecipientRole;
 
-            if ("SUPPLIER".equalsIgnoreCase(senderRole) || "FOURNISSEUR".equalsIgnoreCase(senderRole)) {
-                // If sender is a supplier, find an ADMIN to send the message to
+            if ("SUPPLIER".equalsIgnoreCase(senderRole) || 
+                "FOURNISSEUR".equalsIgnoreCase(senderRole) || 
+                "CUSTOMER".equalsIgnoreCase(senderRole)) {
+
                 recipientUser = userRepository.findFirstByRole("ADMIN")
                     .orElseThrow(() -> new IllegalArgumentException("No ADMIN user found to receive message"));
-                finalRecipientRole = recipientUser.getRole().toLowerCase();
+                finalRecipientRole = recipientUser.getRole().toUpperCase();
             } else {
-                // For other roles (e.g., ADMIN), recipientUsername is expected
                 if (recipientUsername == null || recipientUsername.trim().isEmpty()) {
-                    throw new IllegalArgumentException("Recipient username is required for non-supplier senders.");
+                    throw new IllegalArgumentException("Recipient username is required for non-default senders.");
                 }
+
                 recipientUser = userRepository.findByUsername(recipientUsername);
                 if (recipientUser == null) {
                     throw new IllegalArgumentException("Recipient user not found: " + recipientUsername);
                 }
-                
-                // Validate recipient role for admin sender
-                String recipientRoleFromUser = recipientUser.getRole().toLowerCase();
-                if (!recipientRoleFromUser.equals("supplier") && !recipientRoleFromUser.equals("client")) {
-                    throw new IllegalArgumentException("Recipient must be either a supplier or a client");
+
+                finalRecipientRole = recipientUser.getRole().toUpperCase();
+                if (!finalRecipientRole.equals("SUPPLIER") && !finalRecipientRole.equals("CLIENT")) {
+                    throw new IllegalArgumentException("Recipient must be either a SUPPLIER or a CLIENT");
                 }
-                finalRecipientRole = recipientRoleFromUser;
             }
 
             Notification notification = new Notification();
             notification.setSenderId(senderId);
-            notification.setSenderRole(senderRole.toLowerCase());
+            notification.setSenderRole(senderRole.toUpperCase());
             notification.setRecipientId(recipientUser.getId_user());
             notification.setRecipientRole(finalRecipientRole);
             notification.setTitle(title != null ? title : "");
@@ -67,53 +67,16 @@ public class NotificationService {
             notification.setSenderUsername(senderUsername != null ? senderUsername : "");
             notification.setSentAt(LocalDateTime.now());
             notification.setReadStatus(false);
+
             return notificationRepository.save(notification);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid sender ID format: " + senderIdString);
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (DataAccessException e) {
             throw new RuntimeException("Database error while creating notification: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error while creating notification: " + e.getMessage(), e);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public List<Notification> getNotificationsByRecipient(String role, String recipientIdString) {
-        try {
-            if (recipientIdString == null || recipientIdString.equals("undefined")) {
-                throw new IllegalArgumentException("Invalid recipient ID: cannot be null or undefined");
-            }
-            Integer recipientId = Integer.valueOf(recipientIdString.trim());
-            return notificationRepository.findByRecipientRoleAndRecipientIdOrderBySentAtDesc(role.toLowerCase(), recipientId);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid recipient ID format: " + recipientIdString);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (DataAccessException e) {
-            throw new RuntimeException("Database error while fetching recipient notifications: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new RuntimeException("Unexpected error while fetching recipient notifications: " + e.getMessage(), e);
-        }
-    }
-
-    @Transactional(readOnly = true)
-    public long getUnreadNotificationsCountByRecipient(String role, String recipientIdString) {
-        try {
-            if (recipientIdString == null || recipientIdString.equals("undefined")) {
-                throw new IllegalArgumentException("Invalid recipient ID: cannot be null or undefined");
-            }
-            Integer recipientId = Integer.valueOf(recipientIdString.trim());
-            return notificationRepository.countByRecipientRoleAndRecipientIdAndReadStatusFalse(role.toLowerCase(), recipientId);
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Invalid recipient ID format: " + recipientIdString);
-        } catch (IllegalArgumentException e) {
-            throw e;
-        } catch (DataAccessException e) {
-            throw new RuntimeException("Database error while fetching unread recipient notifications count: " + e.getMessage(), e);
-        } catch (Exception e) {
-            throw new RuntimeException("Unexpected error while fetching unread recipient notifications count: " + e.getMessage(), e);
         }
     }
 
@@ -125,31 +88,28 @@ public class NotificationService {
             }
             
             Integer userId = Integer.valueOf(userIdString.trim());
-            String lowerRole = role.toLowerCase();
-            System.out.println("Fetching notifications for role: " + lowerRole + ", userId: " + userId);
+            String upperRole = role.toUpperCase();
             
-            // Get notifications where user is recipient
+            // For ADMIN, fetch all notifications where the user is the recipient
+            if (upperRole.equals("ADMIN")) {
+                return notificationRepository.findByRecipientRoleAndRecipientIdOrderBySentAtDesc(upperRole, userId);
+            }
+            // For other roles, keep previous logic (sent and received)
             List<Notification> receivedNotifications = notificationRepository
-                .findByRecipientRoleAndRecipientIdOrderBySentAtDesc(lowerRole, userId);
-            
-            // Get notifications where user is sender
+                .findByRecipientRoleAndSenderIdOrderBySentAtDesc(upperRole, userId);
             List<Notification> sentNotifications = notificationRepository
-                .findBySenderRoleAndSenderIdOrderBySentAtDesc(lowerRole, userId);
-            
-            // Combine and sort by sentAt
+                .findBySenderRoleAndSenderIdOrderBySentAtDesc(upperRole, userId);
             List<Notification> allNotifications = new ArrayList<>();
             allNotifications.addAll(receivedNotifications);
             allNotifications.addAll(sentNotifications);
             allNotifications.sort((n1, n2) -> n2.getSentAt().compareTo(n1.getSentAt()));
-            
-            System.out.println("Found " + allNotifications.size() + " notifications (received and sent)");
             return allNotifications;
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Invalid user ID format: " + userIdString);
-        } catch (IllegalArgumentException e) {
-            throw e;
         } catch (DataAccessException e) {
             throw new RuntimeException("Database error while fetching notifications: " + e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error while fetching notifications: " + e.getMessage(), e);
         }
@@ -158,7 +118,7 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<Notification> getUnreadNotificationsForRole(String role) {
         try {
-            return notificationRepository.findByReadStatusAndRecipientRoleOrderBySentAtDesc(false, role.toLowerCase());
+            return notificationRepository.findByReadStatusAndRecipientRoleOrderBySentAtDesc(false, role.toUpperCase());
         } catch (DataAccessException e) {
             throw new RuntimeException("Database error while fetching unread notifications: " + e.getMessage(), e);
         } catch (Exception e) {
@@ -205,4 +165,4 @@ public class NotificationService {
             throw new RuntimeException("Unexpected error while deleting notification: " + e.getMessage(), e);
         }
     }
-} 
+}

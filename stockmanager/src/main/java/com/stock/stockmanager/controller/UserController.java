@@ -26,7 +26,12 @@ import com.stock.stockmanager.response.UserResponse;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://10.0.2.2:19006", allowCredentials = "true")  // ← React Native local (Android)
+@CrossOrigin(origins = {
+    "http://localhost:3000",
+    "http://localhost:8080",
+    "http://10.0.2.2:8080",
+    "http://10.0.2.2:19006"
+}, allowCredentials = "true")
 
 public class UserController {
 

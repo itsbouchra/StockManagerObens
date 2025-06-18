@@ -62,9 +62,11 @@ const ReceptionListScreen = ({ navigation, route }) => {
         data={receptions}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={{ paddingBottom: 80 }}
-        ListEmptyComponent={
-          <Text style={styles.empty}>Aucune réception trouvée pour cet achat.</Text>
-        }
+        ListEmptyComponent={() => (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+            <Text style={styles.empty}>Aucune réception trouvée pour cet achat.</Text>
+          </View>
+        )}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Image

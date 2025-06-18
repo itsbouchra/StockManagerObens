@@ -1,4 +1,4 @@
-import React, { useState , useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,8 +18,8 @@ import {
   ArrowLeft,
   Camera,
 } from 'lucide-react-native';
-
 import { launchImageLibrary } from 'react-native-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import bgImage from '../assets/bg.jpg';
 import profilePic from '../assets/profile-placeholder.jpg';
 import BottomNavBar from '../components/BottomNavBar';
@@ -27,21 +27,25 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-  const route = useRoute(); 
+  const route = useRoute();
 
   const [imageUri, setImageUri] = useState(null);
-  const [userData, setUserData] = useState({
-    username: 'Achraf ELMOUDEN',
-    role: 'Admin',
-  });
+  const [userData, setUserData] = useState({});
 
   useEffect(() => {
-    if (route.params?.updatedData) {
-      setUserData(route.params.updatedData);
-    }
-  }, [route.params?.updatedData]);
+    const chargerUtilisateur = async () => {
+      if (route.params?.updatedData) {
+        setUserData(route.params.updatedData);
+      } else if (route.params?.userData) {
+        setUserData(route.params.userData);
+      } else {
+        const stored = await AsyncStorage.getItem('userData');
+        if (stored) setUserData(JSON.parse(stored));
+      }
+    };
+    chargerUtilisateur();
+  }, [route.params]);
 
-  // ✅ Demande de permission (Android)
   const requestGalleryPermission = async () => {
     if (Platform.OS === 'android') {
       try {
@@ -63,26 +67,36 @@ export default function ProfileScreen() {
     return true;
   };
 
-  // ✅ Ouvre la galerie
   const handleSelectImage = async () => {
     const hasPermission = await requestGalleryPermission();
     if (!hasPermission) return;
 
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: 1,
-      },
-      (response) => {
-        if (response.didCancel) {
-          console.log('Annulé par l’utilisateur');
-        } else if (response.errorCode) {
-          console.log('Erreur: ', response.errorMessage);
-        } else if (response.assets && response.assets.length > 0) {
-          setImageUri(response.assets[0].uri);
-        }
+    launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, (response) => {
+      if (response.didCancel) {
+        console.log('Annulé par l’utilisateur');
+      } else if (response.errorCode) {
+        console.log('Erreur: ', response.errorMessage);
+      } else if (response.assets && response.assets.length > 0) {
+        setImageUri(response.assets[0].uri);
       }
-    );
+    });
+  };
+
+  const getInitials = (username) => {
+    if (!username) return '??';
+    return username
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const afficherRole = (role) => {
+    if (role === 'admin') return 'Administrateur';
+    if (role === 'client') return 'Client';
+    if (role === 'fournisseur') return 'Fournisseur';
+    return role || 'Rôle';
   };
 
   return (
@@ -101,18 +115,21 @@ export default function ProfileScreen() {
 
       <View style={styles.whitePanel}>
         <View style={styles.profileSection}>
-          <View style={styles.imageWrapper}>
-            <Image
-              source={imageUri ? { uri: imageUri } : profilePic}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity style={styles.cameraIcon} onPress={handleSelectImage}>
+          <TouchableOpacity style={styles.imageWrapper} onPress={handleSelectImage}>
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={styles.profileImage} />
+            ) : (
+              <View style={styles.initialsCircle}>
+                <Text style={styles.initialsText}>{getInitials(userData.username)}</Text>
+              </View>
+            )}
+            <View style={styles.cameraIcon}>
               <Camera size={14} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          {/* ✅ Affichage dynamique des données */}
-          <Text style={styles.username}>{userData.username}</Text>
-          <Text style={styles.role}>{userData.role}</Text>
+            </View>
+          </TouchableOpacity>
+
+          <Text style={styles.username}>{userData.username || 'Utilisateur'}</Text>
+          <Text style={styles.role}>{afficherRole(userData.role)}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.options}>
@@ -122,7 +139,6 @@ export default function ProfileScreen() {
             editable
             onPress={() => navigation.navigate('AccountInfo', { userData })}
           />
-
           <OptionButton
             label="Paramètres"
             icon={<Settings size={18} color="#4e5e30" />}
@@ -133,9 +149,8 @@ export default function ProfileScreen() {
             label="Mot de passe"
             icon={<Lock size={18} color="#4e5e30" />}
             editable
-            onPress={() => navigation.navigate('Password')}
+            onPress={() => navigation.navigate('Password', { userId: userData.id_user })}
           />
-
           <OptionButton
             label="Déconnexion"
             icon={<LogOut size={18} color="#4e5e30" />}
@@ -205,11 +220,27 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   profileSection: { alignItems: 'center' },
-  imageWrapper: { position: 'relative', marginBottom: 12 },
+  imageWrapper: {
+    position: 'relative',
+    marginBottom: 12,
+  },
   profileImage: {
     width: 90,
     height: 90,
     borderRadius: 45,
+  },
+  initialsCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#4285F4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  initialsText: {
+    fontSize: 32,
+    color: '#fff',
+    fontWeight: 'bold',
   },
   cameraIcon: {
     position: 'absolute',
@@ -245,5 +276,5 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   optionLeft: { flexDirection: 'row', alignItems: 'center' },
-  optionLabel: { fontSize: 15, color: '#333', marginLeft: 12 },
+  optionLabel: { fontSize: 15, color: '#333', marginLeft: 12 },
 });

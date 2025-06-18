@@ -103,11 +103,13 @@ const OutOfStockScreen = ({ navigation, route }) => {
         {loading ? (
           <ActivityIndicator size="large" color="#166534" style={styles.loader} />
         ) : products.length === 0 ? (
-          <Text style={styles.noProducts}>
-            {showLowStock 
-              ? "Aucun produit en stock faible" 
-              : "Aucun produit en rupture de stock"}
-          </Text>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+            <Text style={styles.noProducts}>
+              {showLowStock 
+                ? "Aucun produit en stock faible" 
+                : "Aucun produit en rupture de stock"}
+            </Text>
+          </View>
         ) : (
           products.map((product, index) => (
             <View key={product.id ? product.id.toString() : `product-${index}`} style={styles.productCard}>

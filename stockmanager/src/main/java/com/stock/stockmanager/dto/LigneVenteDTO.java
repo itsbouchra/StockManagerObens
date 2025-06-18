@@ -1,6 +1,8 @@
 package com.stock.stockmanager.dto;
 
 import com.stock.stockmanager.model.LigneVente;
+import com.stock.stockmanager.model.Produit;
+import java.util.Optional;
 
 public class LigneVenteDTO {
 
@@ -12,18 +14,19 @@ public class LigneVenteDTO {
 
     public LigneVenteDTO() {}
 
-    public LigneVenteDTO(LigneVente ligne) {
-        if (ligne != null && ligne.getProduit() != null) {
-            this.idProduit = ligne.getProduit().getId();
-            this.nomProduit = ligne.getProduit().getNom();
-        } else {
-            this.idProduit = null;
-            this.nomProduit = null;
-        }
-
-        this.quantite = ligne != null ? ligne.getQuantite() : 0;
-        this.prix = ligne != null ? ligne.getPrix() : 0.0;
-        this.total = ligne != null ? ligne.getTotal() : 0.0;
+    public LigneVenteDTO(LigneVente ligneVente) {
+        this.idProduit = Optional.ofNullable(ligneVente.getProduit())
+            .map(Produit::getId)
+            .orElse(null);
+        this.nomProduit = Optional.ofNullable(ligneVente.getProduit())
+            .map(Produit::getNom)
+            .orElse(null);
+        this.quantite = Optional.ofNullable(ligneVente.getQuantite())
+            .orElse(0);
+        this.prix = Optional.ofNullable(ligneVente.getPrix())
+            .orElse(0.0);
+        this.total = Optional.ofNullable(ligneVente.getTotal())
+            .orElse(0.0);
     }
 
     // === Getters & Setters ===
