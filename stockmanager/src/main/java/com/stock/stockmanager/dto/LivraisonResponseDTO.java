@@ -13,6 +13,7 @@ public class LivraisonResponseDTO {
     private Integer quantite;
     private String statut;
     private String refLot;
+    private ProduitDTO produit;
 
     public LivraisonResponseDTO(Livraison livraison) {
         this.id = livraison.getId();
@@ -23,6 +24,11 @@ public class LivraisonResponseDTO {
         this.quantite = livraison.getQuantite();
         this.statut = livraison.getStatut();
         this.refLot = livraison.getRefLot();
+        this.produit = new ProduitDTO();
+        this.produit.setId(livraison.getProduit().getId());
+        this.produit.setNom(livraison.getProduit().getNom());
+        this.produit.setPhoto(livraison.getProduit().getPhoto());
+        this.produit.setUnit(livraison.getProduit().getUnit());
     }
 
     public Integer getId() {
@@ -87,5 +93,13 @@ public class LivraisonResponseDTO {
 
     public void setRefLot(String refLot) {
         this.refLot = refLot;
+    }
+
+    public ProduitDTO getProduit() {
+        return produit;
+    }
+
+    public void setProduit(ProduitDTO produit) {
+        this.produit = produit;
     }
 }

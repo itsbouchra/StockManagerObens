@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { API_ENDPOINTS, handleApiError } from '../config/api';
+import { API_ENDPOINTS, handleApiError, API_BASE_URL } from '../config/api';
 import Toast from 'react-native-toast-message';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
@@ -29,7 +29,7 @@ const LivraisonListScreen = () => {
   const fetchLivraisons = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_ENDPOINTS.DELIVERIES}/vente/${vente.idVente}`);
+      const res = await fetch(`${API_ENDPOINTS.DELIVERIES}/vente/${vente.idVente || vente.id}`);
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -49,42 +49,25 @@ const LivraisonListScreen = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemHeader}>
-        <Text style={styles.itemTitle}>Livraison #{item.id}</Text>
-        <Text style={styles.itemDate}>
-          {new Date(item.dateLivraison).toLocaleDateString()}
+    <View style={styles.card}>
+      <Image
+        source={{
+          uri: `${API_BASE_URL}/images/${item.produit?.photo || 'placeholder.jpg'}`,
+        }}
+        style={styles.image}
+      />
+      <View style={styles.info}>
+        <Text style={styles.title}>{item.produit?.nom}</Text>
+        <Text style={styles.detail}>Date : {item.dateLivraison || ''}</Text>
+        <Text style={styles.detail}>
+          Quantité : {item.quantite} {item.produit?.unit}
         </Text>
-      </View>
-      <View style={styles.itemDetails}>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Produit:</Text>
-          <Text style={styles.detailValue}>{item.produit?.nom || 'N/A'}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Quantité:</Text>
-          <Text style={styles.detailValue}>{item.quantite}</Text>
-        </View>
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Statut:</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.statut) }]}>
-            <Text style={styles.statusText}>{item.statut}</Text>
-          </View>
-        </View>
-      </View>
-      <View style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
-          onPress={() => navigation.navigate('EditLivraisonScreen', { livraison: item })}
-        >
-          <Text style={styles.actionButtonText}>✏️</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={styles.actionButtonText}>🗑️</Text>
-        </TouchableOpacity>
+        <Text style={styles.detail}>
+          Statut : <Text style={{ fontWeight: 'bold' }}>{item.statut ?? 'Non défini'}</Text>
+        </Text>
+        <Text style={styles.detail}>
+          Lot : {item.refLot ?? 'Aucun'}
+        </Text>
       </View>
     </View>
   );
@@ -141,15 +124,21 @@ const LivraisonListScreen = () => {
       <TopBar
         title="Livraisons"
         onGoBack={() => navigation.goBack()}
+        activeLeftIcon="DollarSign"
         onNotificationPress={() => navigation.navigate('Notifications')}
         onSettingsPress={() => navigation.navigate('Settings')}
       />
-      <Text style={styles.title}>Liste des Livraisons</Text>
+      <Text style={styles.screenTitle}>Livraisons pour Vente #{vente.idVente || vente.id}</Text>
       <FlatList
         data={livraisons}
-        renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        ListEmptyComponent={() => (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+            <Text style={styles.empty}>Aucune livraison trouvée pour cette vente.</Text>
+          </View>
+        )}
+        renderItem={renderItem}
       />
       <TouchableOpacity
         style={styles.addButton}
@@ -173,93 +162,58 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#f3f4f6',
   },
-  title: {
+  screenTitle: {
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 20,
     color: '#111827',
   },
-  list: {
+  card: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 16,
+    marginBottom: 18,
     padding: 16,
-    paddingBottom: 80,
-  },
-  itemContainer: {
-    backgroundColor: '#fff',
-    padding: 16,
-    marginVertical: 8,
-    borderRadius: 8,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
-  itemHeader: {
+    borderColor: '#e5e7eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 4,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
+    gap: 12,
   },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  image: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
   },
-  itemDate: {
-    fontSize: 14,
-    color: '#666',
-  },
-  itemDetails: {
-    gap: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    width: 80,
-    fontSize: 14,
-    color: '#666',
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginTop: 12,
-  },
-  actionButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  info: {
+    flex: 1,
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  editButton: {
-    backgroundColor: '#e0f2fe',
-    borderWidth: 1,
-    borderColor: '#38bdf8',
+  title: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
   },
-  deleteButton: {
-    backgroundColor: '#fee2e2',
-    borderWidth: 1,
-    borderColor: '#ef4444',
+  detail: {
+    fontSize: 14,
+    color: '#374151',
+    marginBottom: 2,
   },
-  actionButtonText: {
-    fontSize: 18,
+  empty: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#6b7280',
+    marginTop: 40,
   },
   addButton: {
     position: 'absolute',

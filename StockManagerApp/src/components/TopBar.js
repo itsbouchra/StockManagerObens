@@ -8,6 +8,7 @@ import {
   Package,
   Settings,
   ShoppingCart,
+  DollarSign,
 } from 'lucide-react-native';
 
 const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress, activeRightIcon, notificationCount, onSettingsPress }) => {
@@ -25,6 +26,8 @@ const TopBar = ({ title, activeLeftIcon = 'home', onGoBack, onNotificationPress,
         return <Package size={26} color={iconColor('ProductAD')} />;
       case 'BuysScreen':
         return <ShoppingCart size={26} color={iconColor('BuysScreen')} />;
+      case 'DollarSign':
+        return <DollarSign size={26} color={iconColor('DollarSign')} />;
       case 'notifications':
         return (
           <View>

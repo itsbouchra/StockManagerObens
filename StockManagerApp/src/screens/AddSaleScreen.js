@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import TopBar from '../components/TopBar';
@@ -39,14 +38,14 @@ export default function AddSaleScreen({ navigation }) {
     fetch(`${API_BASE_URL}/api/users`)
       .then(res => res.json())
       .then(data => setClients(data.filter(u => u.role === 'client')))
-      .catch(() => Alert.alert('Erreur', 'Chargement clients impossible'));
+      .catch(() => Toast.show({ type: 'error', text1: 'Erreur', text2: 'Chargement clients impossible', position: 'top' }));
   }, []);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/categories/all`)
       .then(res => res.json())
       .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => Alert.alert('Erreur', 'Erreur lors du chargement des catégories'))
+      .catch(() => Toast.show({ type: 'error', text1: 'Erreur', text2: 'Erreur lors du chargement des catégories', position: 'top' }))
       .finally(() => setLoadingCategories(false));
   }, []);
 
@@ -69,7 +68,7 @@ export default function AddSaleScreen({ navigation }) {
         })
         .catch(err => {
           console.error(err);
-          Toast.show({ type: 'error', text1: 'Erreur chargement produits' });
+          Toast.show({ type: 'error', text1: 'Erreur', text2: 'Erreur chargement produits', position: 'top' });
           setProduits([]);
         });
     } else {
@@ -96,7 +95,7 @@ export default function AddSaleScreen({ navigation }) {
     }
 
     if (lignesToSend.length === 0) {
-      Alert.alert('Erreur', 'Veuillez remplir au moins une ligne produit.');
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Veuillez remplir au moins une ligne produit.', position: 'top' });
       return;
     }
 
@@ -118,14 +117,14 @@ export default function AddSaleScreen({ navigation }) {
       });
 
       if (response.ok) {
-        Alert.alert('Succès', 'Vente ajoutée avec succès');
-        navigation.goBack();
+        Toast.show({ type: 'success', text1: 'Succès', text2: 'Vente ajoutée avec succès', position: 'top' });
+        setTimeout(() => navigation.goBack(), 1400);
       } else {
         const errText = await response.text();
-        Alert.alert('Erreur', `Impossible d'ajouter la vente.\n${errText}`);
+        Toast.show({ type: 'error', text1: 'Erreur', text2: `Impossible d'ajouter la vente.\n${errText}`, position: 'top' });
       }
     } catch (err) {
-      Alert.alert('Erreur', `Erreur lors de l'ajout de la vente: ${err.message}`);
+      Toast.show({ type: 'error', text1: 'Erreur', text2: `Erreur lors de l'ajout de la vente: ${err.message}`, position: 'top' });
     }
   };
 
@@ -133,7 +132,7 @@ export default function AddSaleScreen({ navigation }) {
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.container}>
       <TopBar
   title="Ventes"
-  activeLeftIcon="ventes"
+  activeLeftIcon="DollarSign"
   onGoBack={() => navigation.goBack()}
   onNotificationPress={() => console.log('Notifications')}
   onSettingsPress={() => navigation.navigate('Settings')}
@@ -245,7 +244,7 @@ export default function AddSaleScreen({ navigation }) {
                 setProduitSelected(null);
                 setPickerKey(prev => prev + 1);
               } else {
-                Toast.show({ type: 'error', text1: 'Sélectionnez un produit' });
+                Toast.show({ type: 'error', text1: 'Erreur', text2: 'Sélectionnez un produit', position: 'top' });
               }
             }}
             style={styles.addCircleButton}

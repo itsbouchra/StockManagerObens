@@ -60,9 +60,13 @@ const AddLivraisonScreen = ({ navigation, route }) => {
       // Check stock for each product
       for (let prod of produits) {
         const stock = await fetchStock(prod.idProduit);
-        if (stock === 0) {
-          Toast.show({ type: 'error', text1: 'Erreur réseau', text2: 'Impossible de récupérer le stock.' });
+        if (stock <= 0) {
           setLoading(false);
+          Toast.show({
+            type: 'error',
+            text1: 'Stock épuisé',
+            text2: `Le stock du produit "${prod.nomProduit}" est épuisé ou indisponible!`,
+          });
           return;
         }
         if (Number(prod.quantite) > stock) {
@@ -76,20 +80,18 @@ const AddLivraisonScreen = ({ navigation, route }) => {
         }
       }
       // All stocks are sufficient, proceed
-      const response = await fetch(API_ENDPOINTS.DELIVERIES, {
+      const livraisonRequests = produits.map(prod => ({
+        idVente: vente.idVente || vente.id,
+        idProduit: prod.idProduit,
+        dateLivraison: prod.date,
+        quantite: Number(prod.quantite),
+        statut: 'FIFO',
+        refLot: 'FIFO',
+      }));
+      const response = await fetch(API_ENDPOINTS.DELIVERIES_POST, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          venteId: vente.idVente || vente.id,
-          venteStatut: 'Livré',
-          livraisons: produits.map(prod => ({
-            idProduit: prod.idProduit,
-            dateLivraison: prod.date,
-            quantite: Number(prod.quantite),
-            statut: 'FIFO',
-            refLot: 'FIFO',
-          }))
-        })
+        body: JSON.stringify(livraisonRequests),
       });
       if (response.ok) {
         Toast.show({
@@ -109,6 +111,40 @@ const AddLivraisonScreen = ({ navigation, route }) => {
     }
   };
 
+  // Handler for manual closure (Clôturer)
+  const handleManualCloture = () => {
+    setLoading(true);
+
+    fetch(`${API_BASE_URL}/livraison/${vente.idVente || vente.id}/cloturer`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+    })
+      .then(res => {
+        if (res.ok) {
+          Toast.show({
+            type: 'success',
+            text1: 'Succès',
+            text2: 'Vente clôturée manuellement',
+          });
+          navigation.navigate('SalesListScreen', { refresh: true });
+        } else {
+          return res.json().then(err => {
+            throw new Error(err.message || 'Erreur lors de la clôture');
+          });
+        }
+      })
+      .catch(error => {
+        Toast.show({
+          type: 'error',
+          text1: 'Erreur',
+          text2: String(error.message || 'Erreur de connexion au serveur'),
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f8fafc' }}>
@@ -126,7 +162,7 @@ const AddLivraisonScreen = ({ navigation, route }) => {
       <TopBar
         title="Ajouter Livraison"
         onGoBack={() => navigation.goBack()}
-        activeLeftIcon="SalesListScreen"
+        activeLeftIcon="DollarSign"
         onNotificationPress={() => navigation.navigate('AdminNotifications')}
         onSettingsPress={() => navigation.navigate('Settings')}
       />
@@ -203,13 +239,47 @@ const AddLivraisonScreen = ({ navigation, route }) => {
           <Text style={{ textAlign: 'center', marginVertical: 20, color: '#666' }}>Aucun produit à livrer pour cette vente.</Text>
         )}
       </ScrollView>
-      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 64, flexDirection: 'row', justifyContent: 'center', gap: 30, paddingHorizontal: 24, paddingBottom: 35 }}>
+      <View style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        bottom: 64,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 30,
+        paddingHorizontal: 24,
+        paddingBottom: 35,
+      }}>
         <TouchableOpacity
-          style={{ backgroundColor: '#4338ca', paddingVertical: 10, paddingHorizontal: 32, borderRadius: 8, minWidth: 100, alignItems: 'center', opacity: loading ? 0.5 : 1 }}
+          style={{
+            backgroundColor: '#4338ca',
+            paddingVertical: 10,
+            paddingHorizontal: 32,
+            borderRadius: 8,
+            marginRight: 8,
+            minWidth: 100,
+            alignItems: 'center',
+            opacity: loading ? 0.5 : 1,
+          }}
           onPress={handleValider}
           disabled={loading}
         >
           <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Valider</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            backgroundColor: '#22c55e',
+            paddingVertical: 10,
+            paddingHorizontal: 32,
+            borderRadius: 8,
+            minWidth: 100,
+            alignItems: 'center',
+            opacity: loading ? 0.5 : 1,
+          }}
+          onPress={handleManualCloture}
+          disabled={loading}
+        >
+          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Clôturer</Text>
         </TouchableOpacity>
       </View>
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0 }}>

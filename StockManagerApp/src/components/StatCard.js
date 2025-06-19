@@ -7,6 +7,7 @@ import {
   History,
   CheckCircle,
   XCircle,
+  DollarSign,
 } from 'lucide-react-native';
 
 const iconMap = {
@@ -16,6 +17,7 @@ const iconMap = {
   history: History,
   'check-circle': CheckCircle,
   'x-circle': XCircle,
+  'dollar-sign': DollarSign,
 };
 
 const StatCard = ({ label, value, bgColor, iconName, style, onPress }) => {
@@ -31,8 +33,8 @@ const StatCard = ({ label, value, bgColor, iconName, style, onPress }) => {
       alignItems: 'center',
     }, style]}> {/* This View always renders with the complete styling */}
       <View>
-        <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#fff' }}>{label}</Text>
-        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>{value}</Text>
+        <Text style={{ fontSize: 17, fontWeight: 'bold', color: '#fff' }}>{String(label)}</Text>
+        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#fff' }}>{String(value)}</Text>
       </View>
       <Icon size={33} color="#fff" />
 

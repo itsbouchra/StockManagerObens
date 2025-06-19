@@ -8,7 +8,8 @@ export const API_ENDPOINTS = {
   CATEGORIES: `${API_BASE_URL}/api/categories`,
   SALES: `${API_BASE_URL}/api/ventes`,
   ORDERS: `${API_BASE_URL}/api/orders`,
-  DELIVERIES: `${API_BASE_URL}/api/deliveries`,
+  DELIVERIES: `${API_BASE_URL}/api/livraisons`,
+  DELIVERIES_POST: `${API_BASE_URL}/livraisons`,
   ACTIVITIES: `${API_BASE_URL}/api/activities`,
   NOTIFICATIONS: `${API_BASE_URL}/api/notifications`,
 };

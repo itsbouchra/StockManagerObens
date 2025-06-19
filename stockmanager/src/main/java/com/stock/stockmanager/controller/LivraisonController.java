@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.stock.stockmanager.dto.LivraisonRequest;
 import com.stock.stockmanager.dto.LivraisonResponseDTO;
+import com.stock.stockmanager.dto.ProduitDTO;
 import com.stock.stockmanager.model.Livraison;
 import com.stock.stockmanager.model.Produit;
 import com.stock.stockmanager.model.Reception;
@@ -40,58 +41,60 @@ public class LivraisonController {
     private ReceptionRepository receptionRepository;
 
     @PostMapping("/livraisons")
-    public ResponseEntity<?> enregistrerLivraisons(@RequestBody LivraisonRequest request) {
-        Vente vente = venteRepository.findById(request.getIdVente())
-            .orElseThrow(() -> new RuntimeException("Vente non trouvée"));
+    public ResponseEntity<?> enregistrerLivraisons(@RequestBody List<LivraisonRequest> requests) {
+        for (LivraisonRequest request : requests) {
+            Vente vente = venteRepository.findById(request.getIdVente())
+                .orElseThrow(() -> new RuntimeException("Vente non trouvée"));
 
-        Produit produit = produitRepository.findById(request.getIdProduit())
-            .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
+            Produit produit = produitRepository.findById(request.getIdProduit())
+                .orElseThrow(() -> new RuntimeException("Produit non trouvé"));
 
-        Livraison livraison = new Livraison();
-        livraison.setVente(vente);
-        livraison.setProduit(produit);
-        livraison.setDateLivraison(request.getDateLivraison());
-        livraison.setQuantite(request.getQuantite());
-        livraison.setStatut(request.getStatut());
+            Livraison livraison = new Livraison();
+            livraison.setVente(vente);
+            livraison.setProduit(produit);
+            livraison.setDateLivraison(request.getDateLivraison());
+            livraison.setQuantite(request.getQuantite());
+            livraison.setStatut(request.getStatut());
 
-        String refLotFinal = request.getRefLot();
-
-        // 🔁 Si FIFO, rechercher un lot valide
-        if ("FIFO".equalsIgnoreCase(refLotFinal)) {
-            List<Reception> lots = receptionRepository.findLotsFIFOByProduitId(request.getIdProduit());
-            int quantiteDemandee = request.getQuantite();
-
-            for (Reception lot : lots) {
-                if (lot.getQuantiteRestante() >= quantiteDemandee) {
-                    refLotFinal = lot.getRefLot();
-                    lot.setQuantiteRestante(lot.getQuantiteRestante() - quantiteDemandee);
-                    receptionRepository.save(lot);
-                    break;
-                }
-            }
-
+            String refLotFinal = request.getRefLot();
             if ("FIFO".equalsIgnoreCase(refLotFinal)) {
-                refLotFinal = "Indéfini";
+                List<Reception> lots = receptionRepository.findLotsFIFOByProduitId(request.getIdProduit());
+                int quantiteDemandee = request.getQuantite();
+                for (Reception lot : lots) {
+                    if (lot.getQuantiteRestante() >= quantiteDemandee) {
+                        refLotFinal = lot.getRefLot();
+                        lot.setQuantiteRestante(lot.getQuantiteRestante() - quantiteDemandee);
+                        receptionRepository.save(lot);
+                        break;
+                    }
+                }
+                if ("FIFO".equalsIgnoreCase(refLotFinal)) {
+                    refLotFinal = "Indéfini";
+                }
+            } else {
+                // Use the provided refLot for manual entry
+                refLotFinal = request.getRefLot();
             }
+            livraison.setRefLot(refLotFinal);
+            livraisonRepository.save(livraison);
         }
 
-        livraison.setRefLot(refLotFinal);
-        livraisonRepository.save(livraison);
-
-        // ✅ Vérifier si tous les produits sont totalement livrés
-        boolean allProductsDelivered = vente.getLignes().stream().allMatch(ligne -> {
-            int totalLivre = livraisonRepository.sumQuantiteConformeByVenteAndProduit(vente.getId(), ligne.getProduit().getId());
-            return totalLivre >= ligne.getQuantite();
-        });
-
-        // ✅ Mise à jour intelligente du statut
-        if (allProductsDelivered) {
-            vente.setStatut("Livré");
-        } else {
-            vente.setStatut("En attente");
+        // ✅ Vérifier si tous les produits sont totalement livrés pour la dernière vente traitée
+        if (!requests.isEmpty()) {
+            LivraisonRequest lastRequest = requests.get(requests.size() - 1);
+            Vente vente = venteRepository.findById(lastRequest.getIdVente())
+                .orElseThrow(() -> new RuntimeException("Vente non trouvée"));
+            boolean allProductsDelivered = vente.getLignes().stream().allMatch(ligne -> {
+                int totalLivre = livraisonRepository.sumQuantiteConformeByVenteAndProduit(vente.getId(), ligne.getProduit().getId());
+                return totalLivre >= ligne.getQuantite();
+            });
+            if (allProductsDelivered) {
+                vente.setStatut("Livré");
+            } else {
+                vente.setStatut("En attente");
+            }
+            venteRepository.save(vente);
         }
-
-        venteRepository.save(vente);
 
         return ResponseEntity.ok().build();
     }
@@ -124,9 +127,20 @@ public class LivraisonController {
         try {
             List<Livraison> livraisons = livraisonRepository.findByVenteId(venteId);
             List<LivraisonResponseDTO> responseDTOs = livraisons.stream()
-                .map(LivraisonResponseDTO::new)
+                .map(livraison -> {
+                    LivraisonResponseDTO dto = new LivraisonResponseDTO(livraison);
+                    Produit produit = livraison.getProduit();
+                    if (produit != null) {
+                        ProduitDTO produitDTO = new ProduitDTO();
+                        produitDTO.setId(produit.getId());
+                        produitDTO.setNom(produit.getNom());
+                        produitDTO.setPhoto(produit.getPhoto());
+                        produitDTO.setUnit(produit.getUnit());
+                        dto.setProduit(produitDTO);
+                    }
+                    return dto;
+                })
                 .collect(Collectors.toList());
-
             return ResponseEntity.ok(responseDTOs);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching livraisons: " + e.getMessage());

@@ -5,7 +5,6 @@ import {
   ActivityIndicator,
   FlatList,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import TopBar from '../components/TopBar';
 import BottomNavBar from '../components/BottomNavBar';
@@ -15,6 +14,8 @@ import { API_ENDPOINTS } from '../config/api';
 export default function SalesListScreen({ navigation, route }) {
   const [ventes, setVentes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [venteToDelete, setVenteToDelete] = useState(null);
 
   const fetchVentes = async () => {
     try {
@@ -34,7 +35,7 @@ export default function SalesListScreen({ navigation, route }) {
       }
     } catch (error) {
       console.error('Error fetching ventes:', error);
-      Alert.alert('Erreur', 'Impossible de charger les ventes');
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible de charger les ventes', position: 'top' });
       setVentes([]);
     } finally {
       setLoading(false);
@@ -43,7 +44,7 @@ export default function SalesListScreen({ navigation, route }) {
 
   const deleteVente = async (id) => {
     if (!id) {
-      Alert.alert('Erreur', 'ID de vente invalide');
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'ID de vente invalide', position: 'top' });
       return;
     }
     try {
@@ -51,15 +52,15 @@ export default function SalesListScreen({ navigation, route }) {
         method: 'DELETE',
       });
       if (response.ok) {
-        Alert.alert('Succès', 'Vente supprimée avec succès');
+        Toast.show({ type: 'success', text1: 'Succès', text2: 'Vente supprimée avec succès', position: 'top' });
         fetchVentes();
       } else {
         const error = await response.text();
-        Alert.alert('Erreur', `Erreur lors de la suppression: ${error}`);
+        Toast.show({ type: 'error', text1: 'Erreur', text2: `Erreur lors de la suppression: ${error}`, position: 'top' });
       }
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
-      Alert.alert('Erreur', 'Erreur lors de la suppression de la vente');
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Erreur lors de la suppression de la vente', position: 'top' });
     }
   };
 
@@ -81,7 +82,7 @@ export default function SalesListScreen({ navigation, route }) {
       });
     } catch (error) {
       console.error('Error fetching vente details:', error);
-      Alert.alert('Erreur', 'Impossible de charger les détails de la vente');
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible de charger les détails de la vente', position: 'top' });
     } finally {
       setLoading(false);
     }
@@ -157,16 +158,19 @@ export default function SalesListScreen({ navigation, route }) {
     }
 
     return (
-      <View style={{
-        padding: 18,
-        backgroundColor: '#F9D8D6',
-        marginBottom: 18,
-        borderRadius: 16,
-        marginHorizontal: 16,
-        borderWidth: 1,
-        borderColor: '#e5e7eb',
-        position: 'relative',
-      }}>
+      <TouchableOpacity
+        onPress={() => navigation.navigate('LivraisonListScreen', { vente: item })}
+        activeOpacity={0.85}
+        style={{
+          padding: 18,
+          backgroundColor: '#F9D8D6',
+          marginBottom: 18,
+          borderRadius: 16,
+          marginHorizontal: 16,
+          borderWidth: 1,
+          borderColor: '#e5e7eb',
+          position: 'relative',
+        }}>
         {item.statut?.toLowerCase() === 'en attente' && (
           <TouchableOpacity
             onPress={async () => {
@@ -262,7 +266,7 @@ export default function SalesListScreen({ navigation, route }) {
             }}
             onPress={() => {
               if (!item.id) {
-                Alert.alert('Erreur', 'ID de vente invalide');
+                Toast.show({ type: 'error', text1: 'Erreur', text2: 'ID de vente invalide', position: 'top' });
                 return;
               }
               handleEditVente(item.id);
@@ -289,17 +293,11 @@ export default function SalesListScreen({ navigation, route }) {
             }}
             onPress={() => {
               if (!item.id) {
-                Alert.alert('Erreur', 'ID de vente invalide');
+                Toast.show({ type: 'error', text1: 'Erreur', text2: 'ID de vente invalide', position: 'top' });
                 return;
               }
-              Alert.alert(
-                'Confirmation',
-                'Voulez-vous vraiment supprimer cette vente ?',
-                [
-                  { text: 'Annuler', style: 'cancel' },
-                  { text: 'Supprimer', onPress: () => deleteVente(item.id), style: 'destructive' }
-                ]
-              );
+              setVenteToDelete(item.id);
+              setShowDeleteModal(true);
             }}
           >
             <Text style={{ fontSize: 26, color: '#dc2626' }}>{'🗑️'}</Text>
@@ -317,7 +315,7 @@ export default function SalesListScreen({ navigation, route }) {
             }}
             onPress={() => {
               if (!item.id) {
-                Alert.alert('Erreur', 'ID de vente invalide');
+                Toast.show({ type: 'error', text1: 'Erreur', text2: 'ID de vente invalide', position: 'top' });
                 return;
               }
               const pdfUrl = `${API_ENDPOINTS.SALES}/${item.id}/facture.pdf`;
@@ -327,7 +325,7 @@ export default function SalesListScreen({ navigation, route }) {
             <Text style={{ fontSize: 26, color: '#b45309' }}>🖨</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -335,7 +333,7 @@ export default function SalesListScreen({ navigation, route }) {
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
       <TopBar
         title="Ventes"
-        activeLeftIcon="SalesListScreen"
+        activeLeftIcon="DollarSign"
         onGoBack={() => navigation.goBack()}
         onNotificationPress={() => console.log('Notifications')}
         onSettingsPress={() => navigation.navigate('Settings')}
@@ -366,6 +364,54 @@ export default function SalesListScreen({ navigation, route }) {
         <Text style={{ fontSize: 16, fontWeight: 'bold' }}>+ Ajouter une vente</Text>
       </TouchableOpacity>
       <BottomNavBar navigation={navigation} currentRoute="SalesListScreen" />
+      {showDeleteModal && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 100,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 12,
+              padding: 24,
+              width: '80%',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>Supprimer la vente ?</Text>
+            <Text style={{ fontSize: 16, marginBottom: 24, textAlign: 'center' }}>
+              Êtes-vous sûr de vouloir supprimer cette vente ?
+            </Text>
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              <TouchableOpacity
+                style={{ backgroundColor: '#e5e7eb', padding: 12, borderRadius: 8, minWidth: 80, alignItems: 'center' }}
+                onPress={() => {
+                  setShowDeleteModal(false);
+                  setVenteToDelete(null);
+                }}
+              >
+                <Text style={{ color: '#222', fontWeight: 'bold' }}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ backgroundColor: '#ef4444', padding: 12, borderRadius: 8, minWidth: 80, alignItems: 'center' }}
+                onPress={async () => {
+                  setShowDeleteModal(false);
+                  await deleteVente(venteToDelete);
+                  setVenteToDelete(null);
+                }}
+              >
+                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Supprimer</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      )}
       <Toast />
     </View>
   );

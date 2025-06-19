@@ -142,6 +142,7 @@ const AppNavigator = () => {
             <Stack.Screen name="SalesListScreen" component={SalesListScreen} options={screenOptions} />
             <Stack.Screen name="EditVenteScreen" component={EditVenteScreen} options={screenOptions} />
             <Stack.Screen name="AddLivraisonScreen" component={AddLivraisonScreen} options={screenOptions} />
+            <Stack.Screen name="LivraisonListScreen" component={LivraisonListScreen} options={screenOptions} />
             <Stack.Screen name="ReceptionListScreen" component={ReceptionListScreen} options={screenOptions} />
             <Stack.Screen name="PdfViewerScreen" component={PdfViewerScreen} options={screenOptions} />
             <Stack.Screen name="ProductReceptionScreen" component={ProductReceptionScreen} options={screenOptions} />
